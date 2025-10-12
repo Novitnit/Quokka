@@ -1,4 +1,8 @@
 # 📝 To-Do List
 - [X] Createtoken
 - [X] CreateGroup
-- [ ] Lexer tokenize
+- [X] Lexer tokenize
+- [ ] Parser Rule
+- [ ] Parser to AST
+- [ ] AST Visitor
+- [ ] helper for create LSP 
