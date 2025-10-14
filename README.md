@@ -2,7 +2,15 @@
 - [X] Createtoken
 - [X] CreateGroup
 - [X] Lexer tokenize
-- [ ] Parser Rule
-- [ ] Parser to AST
+- [X] Parser Rule --consume
+- [ ] Parser Productions Rule --consume
+- [ ] Parser Rule --option
+- [ ] Parser Productions Rule --option
+- [ ] Parser Rule --many
+- [ ] Parser Productions Rule --many
+- [ ] Parser Rule --subrule
+- [ ] Parser Productions Rule --subrule
+- [ ] Parser Table
+- [ ] Parser Class
 - [ ] AST Visitor
 - [ ] helper for create LSP 

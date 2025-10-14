@@ -92,6 +92,23 @@ export class Lexer {
             }
         }
 
+        //add EOF
+        const eofOffset = this.input.length;
+        const { line: eofLine, column: eofColumn } = this.getLineColumn(eofOffset);
+        tokens.push({
+            image: "<EOF>",
+            startColumn: eofColumn,
+            endColumn: eofColumn,
+            line: eofLine,
+            startOffset: eofOffset,
+            endOffset: eofOffset,
+            tokenType: {
+                name: "<EOF>",
+                pattern: /<EOF>/,
+                tokenIndex: -1
+            }
+        });
+
         const Groups:QGroup[] = [...this.AllGroup??[],this.SkipGroup]; 
 
         return {
