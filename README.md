@@ -3,13 +3,13 @@
 - [X] CreateGroup
 - [X] Lexer tokenize
 - [X] Parser Rule --consume
-- [ ] Parser Productions Rule --consume
-- [ ] Parser Rule --option
-- [ ] Parser Productions Rule --option
-- [ ] Parser Rule --many
-- [ ] Parser Productions Rule --many
-- [ ] Parser Rule --subrule
-- [ ] Parser Productions Rule --subrule
+- [X] Parser Productions Rule --consume
+- [X] Parser Rule --option
+- [X] Parser Productions Rule --option
+- [X] Parser Rule --many
+- [X] Parser Productions Rule --many
+- [X] Parser Rule --subrule
+- [X] Parser Productions Rule --subrule
 - [ ] Parser Table
 - [ ] Parser Class
 - [ ] AST Visitor
