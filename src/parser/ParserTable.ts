@@ -8,6 +8,7 @@ export type Production = {
 type Item = {
     productionIdx: number
     dot: number
+    lookaheads: Set<number>
 }
 
 type State = {
@@ -24,9 +25,12 @@ export class ParserTable {
     constructor(rule: Rule) {
         const bP = new buildProductions(rule)
         this.Productions = bP.getProductions()
+        // console.log("Productions:", this.Productions);
         this.createItemFromProduction()
         this.nonterminalMap = bP.getnonterminalMap()
+        // console.log("NonterminalMap:", this.nonterminalMap);
         this.buildReverseNonterminalMap()
+        // console.log("ReverseNonterminalMap:", this.reverseNonterminalMap);
     }
 
     /*
@@ -38,7 +42,7 @@ export class ParserTable {
             if (!prod) throw "Productions[productionIdx] is undentify"
             // dot วิ่งตั้งแต่ 0 ถึง body.length
             for (let dot = 0; dot <= prod.body.length; dot++) {
-                this.Items.push({ productionIdx, dot })
+                this.Items.push({ productionIdx, dot, lookaheads: new Set() })
             }
         }
     }
@@ -68,15 +72,148 @@ export class ParserTable {
                     const prods = this.productionsFor(sym);
                     for (const p of prods) {
                         const prodIndex = this.Productions.indexOf(p);
-                        if (addItem({ productionIdx: prodIndex, dot: 0 })) {
+                        const lookaheadSet = new Set<number>(this.computeLookaheads(item, sym));
+                        if (addItem({ productionIdx: prodIndex, dot: 0, lookaheads: lookaheadSet })) {
                             changed = true;
                         }
+
                     }
                 }
             }
         }
         return result;
     }
+
+    private computeLookaheads(item: Item, sym: number): number[] {
+        const prod = this.Productions[item.productionIdx];
+        if(prod === undefined) throw "this.Productions[item.productionIdx] is undentifire"
+        // ส่วนของ production หลัง symbol ที่อยู่หลัง dot
+        const beta = prod.body.slice(item.dot + 1);
+
+        const result = new Set<number>();
+
+        // 1️⃣ FIRST(beta)
+        for (const t of this.firstOfSequence(beta)) {
+            result.add(t);
+        }
+
+        // 2️⃣ ถ้า beta nullable → รวม lookahead ของ item ปัจจุบัน
+        if (this.canBeEmpty(beta)) {
+            for (const la of item.lookaheads) {
+                result.add(la);
+            }
+        }
+
+        return Array.from(result);
+    }
+
+    private firstOfSequence(symbols: number[]): number[] {
+        const result = new Set<number>();
+        let nullableSoFar = true;
+
+        for (const sym of symbols) {
+            const firstSym = this.firstOfSymbol(sym);
+            for (const t of firstSym) {
+                result.add(t);
+            }
+            if (!this.canBeEmptySymbol(sym)) {
+                nullableSoFar = false;
+                break;
+            }
+        }
+
+        return Array.from(result);
+    }
+
+    /**
+     * คืน FIRST set ของ symbol เดียว (terminal หรือ nonterminal)
+     */
+    private firstOfSymbol(sym: number): number[] {
+        // ถ้าเป็น terminal → FIRST(sym) = { sym }
+        if (!this.isNonterminal(sym)) {
+            return [sym];
+        }
+
+        // ถ้าเป็น nonterminal → FIRST(sym) = union ของ FIRST ของ body ตัวแรกในทุก production
+        const name = this.reverseNonterminalMap[sym];
+        if (!name) return [];
+
+        const prods = this.Productions.filter(p => p.head === name);
+        const result = new Set<number>();
+
+        for (const p of prods) {
+            if (p.body.length === 0) {
+                // Production ว่าง → nullable → ไม่มี terminal ใน FIRST
+                continue;
+            }
+
+            // อ่าน body จากซ้ายไปขวา
+            for (const s of p.body) {
+                const firstS = this.firstOfSymbol(s);
+                for (const t of firstS) {
+                    result.add(t);
+                }
+
+                // ถ้า symbol นี้ nullable → เดินต่อไป
+                if (this.canBeEmptySymbol(s)) {
+                    continue;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        return Array.from(result);
+    }
+
+
+    /**
+     * ตรวจว่า symbol ตัวเดียวสามารถเป็น ε (nullable) ได้ไหม
+     */
+    private canBeEmptySymbol(sym: number): boolean {
+        // terminal → ไม่มีวันเป็น ε
+        if (!this.isNonterminal(sym)) {
+            return false;
+        }
+
+        const name = this.reverseNonterminalMap[sym];
+        if (!name) return false;
+
+        const prods = this.Productions.filter(p => p.head === name);
+
+        // ถ้ามี production ที่ body ว่าง → nullable ทันที
+        for (const p of prods) {
+            if (p.body.length === 0) {
+                return true;
+            }
+
+            // ตรวจว่าทุก symbol ใน body nullable ไหม
+            let allNullable = true;
+            for (const b of p.body) {
+                if (!this.canBeEmptySymbol(b)) {
+                    allNullable = false;
+                    break;
+                }
+            }
+            if (allNullable) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    private canBeEmpty(symbols: number[]): boolean {
+        for (const sym of symbols) {
+            if (!this.canBeEmptySymbol(sym)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 
     private productionsFor(sym: number): Production[] {
         const name = this.reverseNonterminalMap[sym];

@@ -11,6 +11,7 @@
 - [X] Parser Rule --subrule
 - [X] Parser Productions Rule --subrule
 - [X] Parser create ItemFromProductions
+- [ ] Parser computeLookaheads
 - [ ] Parser Table
 - [ ] Parser Class
 - [ ] AST Visitor
