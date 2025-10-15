@@ -18,11 +18,15 @@ type State = {
 export class ParserTable {
     private Productions: Production[] = [];
     private Items: Item[] = []
+    private nonterminalMap: Map<string, number> = new Map<string, number>
+    private reverseNonterminalMap: Record<number, string> = {}
 
     constructor(rule: Rule) {
         const bP = new buildProductions(rule)
         this.Productions = bP.getProductions()
         this.createItemFromProduction()
+        this.nonterminalMap = bP.getnonterminalMap()
+        this.buildReverseNonterminalMap()
     }
 
     /*
@@ -31,12 +35,74 @@ export class ParserTable {
     private createItemFromProduction() {
         for (let productionIdx = 0; productionIdx < this.Productions.length; productionIdx++) {
             const prod = this.Productions[productionIdx]
-            if (!prod) throw ""
+            if (!prod) throw "Productions[productionIdx] is undentify"
             // dot วิ่งตั้งแต่ 0 ถึง body.length
-            for (let dot = 0; dot < prod.body.length; dot++) {
+            for (let dot = 0; dot <= prod.body.length; dot++) {
                 this.Items.push({ productionIdx, dot })
             }
         }
+    }
+
+    private closure(seedItems: Item[]): Item[] {
+        const result: Item[] = [];
+        const seen = new Set<string>();
+
+        const addItem = (item: Item) => {
+            const key = `${item.productionIdx}-${item.dot}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                result.push(item);
+                return true;
+            }
+            return false;
+        };
+
+        seedItems.forEach(addItem);
+
+        let changed = true;
+        while (changed) {
+            changed = false;
+            for (const item of [...result]) {
+                const sym = this.nextSymbol(item);
+                if (sym !== null && this.isNonterminal(sym)) {
+                    const prods = this.productionsFor(sym);
+                    for (const p of prods) {
+                        const prodIndex = this.Productions.indexOf(p);
+                        if (addItem({ productionIdx: prodIndex, dot: 0 })) {
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private productionsFor(sym: number): Production[] {
+        const name = this.reverseNonterminalMap[sym];
+        if (!name) return [];
+        return this.Productions.filter(p => p.head === name);
+    }
+
+    private buildReverseNonterminalMap() {
+        const reverse: Record<number, string> = {};
+        for (const [name, idx] of this.nonterminalMap.entries()) {
+            reverse[idx] = name;
+        }
+        this.reverseNonterminalMap = reverse;
+    }
+
+
+    private isNonterminal(sym: number): boolean {
+        return sym >= 10000
+    }
+
+    private nextSymbol(item: Item): number | null {
+        const prod = this.Productions[item.productionIdx];
+        if (!prod) return null
+        const prodBody = prod.body[item.dot]
+        if (prodBody === undefined) return null
+        return item.dot < prod.body.length ? prodBody : null;
     }
 }
 
@@ -47,6 +113,10 @@ class buildProductions {
 
     constructor(rule: Rule) {
         this.buildProductions(rule)
+    }
+
+    public getnonterminalMap(): Map<string, number> {
+        return this.nonterminalMap
     }
 
     public getProductions(): Production[] {
@@ -67,7 +137,7 @@ class buildProductions {
             this.Productions.push({ head: rule.name, body: b })
         }
         //ไล่หา subrule ซ่อนอยู่ ใน option/many/or แล้ว build productions
-        for(const impl of rule.body){
+        for (const impl of rule.body) {
             this.scanNestedForRules(impl)
         }
     }
