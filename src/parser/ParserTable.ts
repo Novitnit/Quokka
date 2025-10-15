@@ -15,8 +15,35 @@ type State = {
     transitions: Map<number, number>
 }
 
+export class ParserTable {
+    private Productions: Production[] = [];
+    private Items: Item[] = []
+
+    constructor(rule: Rule) {
+        const bP = new buildProductions(rule)
+        this.Productions = bP.getProductions()
+        this.createItemFromProduction()
+    }
+
+    /*
+     แปลง production ทั้งหมดเป็น item list
+    */
+    private createItemFromProduction() {
+        for (let productionIdx = 0; productionIdx < this.Productions.length; productionIdx++) {
+            const prod = this.Productions[productionIdx]
+            if (!prod) throw ""
+            // dot วิ่งตั้งแต่ 0 ถึง body.length
+            for (let dot = 0; dot < prod.body.length; dot++) {
+                this.Items.push({ productionIdx, dot })
+            }
+        }
+    }
+}
+
 class buildProductions {
     private Productions: Production[] = [];
+    private nonterminalMap = new Map<string, number>();
+    private nonterminalCount = 10000;
 
     constructor(rule: Rule) {
         this.buildProductions(rule)
@@ -26,11 +53,22 @@ class buildProductions {
         return this.Productions
     }
 
+    private getNonterminalIndex(name: string): number {
+        if (!this.nonterminalMap.has(name)) {
+            this.nonterminalMap.set(name, this.nonterminalCount++);
+        }
+        return this.nonterminalMap.get(name)!;
+    }
+
     // แปลงจาก rule ที่เป็น object ไปเป็น production
     private buildProductions(rule: Rule) {
         const bodies = this.expandImpllist(rule.body)
         for (const b of bodies) {
             this.Productions.push({ head: rule.name, body: b })
+        }
+        //ไล่หา subrule ซ่อนอยู่ ใน option/many/or แล้ว build productions
+        for(const impl of rule.body){
+            this.scanNestedForRules(impl)
         }
     }
 
@@ -42,6 +80,30 @@ class buildProductions {
         }
         return result
     }
+
+    private scanNestedForRules(impl: Impl) {
+        switch (impl.implType) {
+            case "subrule": {
+                const sub = impl.getRule();
+                this.buildProductions(sub);
+                break;
+            }
+            case "option":
+            case "many": {
+                this.scanNestedForRules(impl.child);
+                break;
+            }
+            case "or": {
+                for (const alt of impl.alternatives) {
+                    this.scanNestedForRules(alt);
+                }
+                break;
+            }
+            case "consume":
+                break;
+        }
+    }
+
     private expandImpl(impl: Impl, acc: number[][]): number[][] {
         switch (impl.implType) {
             case "consume": {
@@ -57,8 +119,8 @@ class buildProductions {
             }
             case "subrule": {
                 const subRule = impl.getRule();
-                const subBodies = this.expandImpllist(subRule.body);
-                return acc.flatMap(a => subBodies.map(b => [...a, ...b]));
+                const nonterminalIdx = this.getNonterminalIndex(subRule.name);
+                return acc.map(a => [...a, nonterminalIdx]);
             }
             case "many": {
                 // many = 0 หรือมากกว่า → นี่เป็นเวอร์ชันง่าย ไม่ recursive

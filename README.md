@@ -10,6 +10,7 @@
 - [X] Parser Productions Rule --many
 - [X] Parser Rule --subrule
 - [X] Parser Productions Rule --subrule
+- [X] Parser create ItemFromProductions
 - [ ] Parser Table
 - [ ] Parser Class
 - [ ] AST Visitor
