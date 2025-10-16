@@ -11,6 +11,10 @@
 - [X] Parser Rule --subrule
 - [X] Parser Productions Rule --subrule
 - [X] Parser create ItemFromProductions
+- [X] Parser buildStatesTable
+- [ ] Parser copute Lookahead Sets
+- [ ] Parser create ACTION Table
+- [ ] Parser create GOTO Table
 - [ ] Parser computeLookaheads
 - [ ] Parser Table
 - [ ] Parser Class

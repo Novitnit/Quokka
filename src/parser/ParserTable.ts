@@ -21,16 +21,27 @@ export class ParserTable {
     private Items: Item[] = []
     private nonterminalMap: Map<string, number> = new Map<string, number>
     private reverseNonterminalMap: Record<number, string> = {}
+    private States: State[] = []
 
     constructor(rule: Rule) {
         const bP = new buildProductions(rule)
         this.Productions = bP.getProductions()
-        // console.log("Productions:", this.Productions);
-        this.createItemFromProduction()
         this.nonterminalMap = bP.getnonterminalMap()
-        // console.log("NonterminalMap:", this.nonterminalMap);
         this.buildReverseNonterminalMap()
-        // console.log("ReverseNonterminalMap:", this.reverseNonterminalMap);
+
+        const startNonterminalIdx = 99999;
+        const originalStartIdx = Number(
+            Object.keys(this.reverseNonterminalMap)
+                .find(key => this.reverseNonterminalMap[Number(key)] === rule.name)
+        );
+        this.Productions.unshift({
+            head: "S'",
+            body: [originalStartIdx]
+        });
+        this.reverseNonterminalMap[startNonterminalIdx] = "S'";
+
+        this.createItemFromProduction()
+        this.buildStates()
     }
 
     /*
@@ -45,6 +56,83 @@ export class ParserTable {
                 this.Items.push({ productionIdx, dot, lookaheads: new Set() })
             }
         }
+    }
+
+    /*
+     สร้างตาราง States
+    */
+    private buildStates() {
+        //หา production ที่มี index = 0 และ dot = 0
+        const startItem = this.Items.find(
+            i => i.productionIdx === 0 && i.dot === 0
+        );
+        if (!startItem) throw new Error("Start item not found");
+        startItem.lookaheads.add(-1)// -1 คือ idx ของ EOF
+        const startClosure = this.closure([startItem]);
+        this.States.push({ items: startClosure, transitions: new Map() });
+
+        const queue: number[] = [0]
+        const seen: string[] = [this.itemsKey(startClosure)]
+
+        while (queue.length) {
+            const stateIndex = queue.shift()!;
+            const state = this.States[stateIndex]
+            if (!state) throw `Not have This State ${stateIndex}`
+            const symbols = new Set<number>()
+            for (const item of state.items) {
+                const prod = this.Productions[item.productionIdx] as Production;
+                const sym = prod.body[item.dot];
+                if (item.dot < prod.body.length) {
+                    symbols.add(prod.body[item.dot] as number);
+                }
+            }
+
+            for (const sym of symbols) {
+                const newItems = this.goto(state, sym);
+                if (newItems.length === 0) continue;
+
+                const key = this.itemsKey(newItems);
+
+                let existingIndex = seen.indexOf(key);
+                if (existingIndex === -1) {
+                    existingIndex = this.States.length;
+                    this.States.push({ items: newItems, transitions: new Map() });
+                    seen.push(key);
+                    queue.push(existingIndex);
+                }
+
+                state.transitions.set(sym, existingIndex);
+            }
+        }
+        // console.log("States:", this.States);
+    }
+
+    private itemsKey(items: Item[]): string {
+        return items
+            .map(i => {
+                const lookaheads = Array.from(i.lookaheads).sort((a, b) => a - b).join(",");
+                return `${i.productionIdx}.${i.dot}.${lookaheads}`;
+            })
+            .sort() // ทำให้ลำดับ item ไม่สำคัญ
+            .join("|");
+    }
+
+    private goto(state: State, sym: number) {
+        const moveItem: Item[] = []
+        for (const Item of state.items) {
+            const prod = this.Productions[Item.productionIdx]
+            if (!prod) continue;
+
+            const nextSym = Item.dot < prod.body.length ? prod.body[Item.dot] : undefined;
+            if (nextSym === sym) {
+                moveItem.push({
+                    productionIdx: Item.productionIdx,
+                    dot: Item.dot + 1,
+                    lookaheads: new Set(Item.lookaheads),
+                });
+            }
+        }
+        return this.closure(moveItem);
     }
 
     private closure(seedItems: Item[]): Item[] {
@@ -86,7 +174,7 @@ export class ParserTable {
 
     private computeLookaheads(item: Item, sym: number): number[] {
         const prod = this.Productions[item.productionIdx];
-        if(prod === undefined) throw "this.Productions[item.productionIdx] is undentifire"
+        if (prod === undefined) throw "this.Productions[item.productionIdx] is undentifire"
         // ส่วนของ production หลัง symbol ที่อยู่หลัง dot
         const beta = prod.body.slice(item.dot + 1);
 
@@ -267,19 +355,17 @@ class buildProductions {
         return this.nonterminalMap.get(name)!;
     }
 
-    // แปลงจาก rule ที่เป็น object ไปเป็น production
     private buildProductions(rule: Rule) {
+        this.getNonterminalIndex(rule.name);
         const bodies = this.expandImpllist(rule.body)
         for (const b of bodies) {
             this.Productions.push({ head: rule.name, body: b })
         }
-        //ไล่หา subrule ซ่อนอยู่ ใน option/many/or แล้ว build productions
         for (const impl of rule.body) {
             this.scanNestedForRules(impl)
         }
     }
 
-    // แปลงจาก impl ที่เป็น object ไปเป็น array ของ token index
     private expandImpllist(body: Impl[]): number[][] {
         let result: number[][] = [[]]
         for (const impl of body) {
@@ -317,9 +403,7 @@ class buildProductions {
                 return acc.map(a => [...a, impl.token.tokenIndex])
             }
             case "option": {
-                // 1) ไม่มี child
                 const without = acc.map(a => [...a]);
-                // 2) มี child
                 const childBodies = this.expandImpl(impl.child, [[]]);
                 const withChild = acc.flatMap(a => childBodies.map(c => [...a, ...c]));
                 return [...without, ...withChild];
@@ -330,10 +414,8 @@ class buildProductions {
                 return acc.map(a => [...a, nonterminalIdx]);
             }
             case "many": {
-                // many = 0 หรือมากกว่า → นี่เป็นเวอร์ชันง่าย ไม่ recursive
                 const childBodies = this.expandImpl(impl.child, [[]]);
-                let results = acc.map(a => [...a]); // เวอร์ชันไม่มีเลย
-                // จำกัดจำนวนซ้ำ เช่น 1-3 รอบ
+                let results = acc.map(a => [...a]); 
                 for (const a of acc) {
                     for (const c of childBodies) {
                         results.push([...a, ...c]);
