@@ -16,6 +16,6 @@
     - [X] Parser computeLookaheads
     - [X] Parser create ACTION Table
     - [X] Parser create GOTO Table
-- [ ] Parser Class
-- [ ] AST Visitor
+- [X] Parser Class
+- [ ] CST Visitor
 - [ ] helper for create LSP 

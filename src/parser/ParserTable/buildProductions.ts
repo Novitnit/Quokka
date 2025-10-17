@@ -84,15 +84,20 @@ export class buildProductions {
                 return acc.map(a => [...a, nonterminalIdx]);
             }
             case "many": {
+                const manyName = `MANY_${Math.random().toString(36).slice(2)}`;
+                const manyIdx = this.getNonterminalIndex(manyName);
                 const childBodies = this.expandImpl(impl.child, [[]]);
-                let results = acc.map(a => [...a]); 
-                for (const a of acc) {
-                    for (const c of childBodies) {
-                        results.push([...a, ...c]);
-                        results.push([...a, ...c, ...c]);
-                    }
+                this.Productions.push({
+                    head: manyName,
+                    body: []
+                });
+                for (const c of childBodies) {
+                    this.Productions.push({
+                        head: manyName,
+                        body: [...c, manyIdx]
+                    });
                 }
-                return results;
+                return acc.map(a => [...a, manyIdx]);
             }
             case "or": {
                 let results: number[][] = [];
