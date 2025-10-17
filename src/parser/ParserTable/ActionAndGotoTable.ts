@@ -1,5 +1,15 @@
 import { State } from ".";
+import { getTokenMap } from "../../lexer";
 import { Production } from "./types";
+
+export interface Table {
+    ActionTable:ActionTable
+    GotoTable:GotoTable
+    TokenMap:Map<number,string>
+    States:State[]
+    productions:Production[]
+    nonterminalMap:Map<string, number>
+}
 
 export type Action =
     | { type: "shift"; to: number }
@@ -13,13 +23,17 @@ type GotoTable = Map<number, Map<number, number>>;
 export class ActionAndGotoTable {
     private ACTION: ActionTable = new Map();
     private GOTO: GotoTable = new Map();
+    private TokenMap:Map<number,string> = new Map()
 
     constructor(
         private states: State[],
         private productions: Production[],
-        private isNonterminal: (sym: number) => boolean
+        private isNonterminal: (sym: number) => boolean,
+        private nonterminalMap: Map<string, number>,
     ) {
         this.build();
+        this.TokenMap = getTokenMap()
+        this.TokenMap.set(-1,"EOF")
     }
 
     private build() {
@@ -62,6 +76,17 @@ export class ActionAndGotoTable {
         }
     }
 
+    public getTable():Table{
+        return {
+            ActionTable:this.ACTION,
+            GotoTable:this.GOTO,
+            nonterminalMap:this.nonterminalMap,
+            productions:this.productions,
+            States:this.states,
+            TokenMap:this.TokenMap
+        }
+    }
+
     public getAction(state: number, terminal: number): Action {
         return this.ACTION.get(state)?.get(terminal) ?? { type: "error" };
     }
@@ -69,7 +94,7 @@ export class ActionAndGotoTable {
     public getGoto(state: number, nonterminal: number): number | undefined {
         return this.GOTO.get(state)?.get(nonterminal);
     }
-
+    
     public dump() {
         console.log("=== ACTION TABLE ===");
         for (const [s, row] of this.ACTION.entries()) {
