@@ -2,21 +2,20 @@
 - [X] Createtoken
 - [X] CreateGroup
 - [X] Lexer tokenize
-- [X] Parser Rule --consume
-- [X] Parser Productions Rule --consume
-- [X] Parser Rule --option
-- [X] Parser Productions Rule --option
-- [X] Parser Rule --many
-- [X] Parser Productions Rule --many
-- [X] Parser Rule --subrule
-- [X] Parser Productions Rule --subrule
-- [X] Parser create ItemFromProductions
-- [X] Parser buildStatesTable
-- [ ] Parser copute Lookahead Sets
-- [ ] Parser create ACTION Table
-- [ ] Parser create GOTO Table
-- [ ] Parser computeLookaheads
-- [ ] Parser Table
+- [X] Parser Table
+    - [X] Parser Rule --consume
+    - [X] Parser Productions Rule --consume
+    - [X] Parser Rule --option
+    - [X] Parser Productions Rule --option
+    - [X] Parser Rule --many
+    - [X] Parser Productions Rule --many
+    - [X] Parser Rule --subrule
+    - [X] Parser Productions Rule --subrule
+    - [X] Parser create ItemFromProductions
+    - [X] Parser buildStatesTable
+    - [X] Parser computeLookaheads
+    - [X] Parser create ACTION Table
+    - [X] Parser create GOTO Table
 - [ ] Parser Class
 - [ ] AST Visitor
 - [ ] helper for create LSP 

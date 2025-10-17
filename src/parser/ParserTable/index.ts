@@ -3,8 +3,9 @@ import { Production } from "./types";
 import { Item, createItemsFromProductions, itemsKey } from "./Item";
 import { closure, goto } from "./ClosureGoto";
 import { buildProductions } from "./buildProductions";
+import { ActionAndGotoTable } from "./ActionAndGotoTable";
 
-type State = {
+export type State = {
     items: Item[]
     transitions: Map<number, number>
 }
@@ -14,7 +15,8 @@ export class ParserTable {
     private Items: Item[] = [];
     private nonterminalMap: Map<string, number> = new Map<string, number>();
     private reverseNonterminalMap: Record<number, string> = {};
-    public States: State[] = [];
+    private States: State[] = [];
+    public actionGotoTable: ActionAndGotoTable;
 
     constructor(rule: Rule) {
         this.buildProductions(rule);
@@ -22,6 +24,12 @@ export class ParserTable {
         this.addAugmentedProduction(rule.name);
         this.Items = createItemsFromProductions(this.Productions);
         this.buildStates();
+
+        this.actionGotoTable = new ActionAndGotoTable(
+            this.States,
+            this.Productions,
+            this.isNonterminal.bind(this)
+        );
     }
 
     private buildProductions(rule: Rule) {
