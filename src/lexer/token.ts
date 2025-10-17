@@ -39,6 +39,7 @@ export interface GroupConfig {
 export interface QGroup {
     name: string;
     tokenIndexs: Set<number>;
+    tokens: QTokennType[];
     groupIndex: number;
 }
 
@@ -64,6 +65,7 @@ export function createGroup(config: GroupConfig): QGroup {
         name: config.name,
         tokenIndexs: new Set(config.tokens.map(t => t.tokenIndex)),
         groupIndex: groupIdx,
+        tokens: config.tokens
     };
 
     allGroups.push(newGroup);

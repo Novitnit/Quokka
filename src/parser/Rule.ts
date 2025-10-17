@@ -1,4 +1,5 @@
-import { QTokennType } from "../lexer";
+import { a } from "vitest/dist/chunks/suite.d.FvehnV49.js";
+import { QGroup, QTokennType } from "../lexer";
 
 export type Impl = ConsumeRule | SubRule | OptionRule | ManyRule | OrRule;
 
@@ -38,6 +39,7 @@ export interface CreateRuleContext {
     many: (cb: (ctx: CreateRuleContext) => void) => void;
     or: (cbs: ((ctx: CreateRuleContext) => void)[]) => void;
     subRule: (getRule: () => Rule) => void;
+    useGroup: (QGroup: QGroup) => void;
 }
 
 export function createRule(name: string, callback: (ctx: CreateRuleContext) => void): Rule {
@@ -72,6 +74,21 @@ export function createRule(name: string, callback: (ctx: CreateRuleContext) => v
         },
         subRule(getRule) {
             body.push({ implType: "subrule", getRule });
+        },
+        useGroup(QGroup: QGroup) {
+            const alts: Impl[] = [];
+            for (const token of QGroup.tokens) {
+                alts.push({ implType: "consume", token })
+            }
+
+            if (alts.length === 1) {
+                body.push(alts[0] as Impl);
+            } else {
+                body.push({
+                    implType: "or",
+                    alternatives: alts
+                });
+            }
         }
     };
 
@@ -111,6 +128,21 @@ function createChildContext(body: Impl[]): CreateRuleContext {
         },
         subRule(getRule) {
             body.push({ implType: "subrule", getRule });
+        },
+        useGroup(QGroup: QGroup) {
+            const alts: Impl[] = [];
+            for (const token of QGroup.tokens) {
+                alts.push({ implType: "consume", token })
+            }
+
+            if (alts.length === 1) {
+                body.push(alts[0] as Impl);
+            } else {
+                body.push({
+                    implType: "or",
+                    alternatives: alts
+                });
+            }
         }
     };
 }
@@ -121,7 +153,7 @@ function createChildContext(body: Impl[]): CreateRuleContext {
  * - ถ้ามีหลาย element ห่อเป็น subrule
  */
 function wrapBodyAsImpl(body: Impl[]): Impl {
-    if (body[0] !== undefined && body.length === 1 ) return body[0];
+    if (body[0] !== undefined && body.length === 1) return body[0];
     // สร้าง subRule inline สำหรับ sequence
     return {
         implType: "subrule",

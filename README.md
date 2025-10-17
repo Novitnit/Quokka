@@ -10,6 +10,7 @@
     - [X] Parser Rule --many
     - [X] Parser Productions Rule --many
     - [X] Parser Rule --subrule
+    - [ ] Parser Rule --useGroup
     - [X] Parser Productions Rule --subrule
     - [X] Parser create ItemFromProductions
     - [X] Parser buildStatesTable
@@ -17,5 +18,6 @@
     - [X] Parser create ACTION Table
     - [X] Parser create GOTO Table
 - [X] Parser Class
+- [ ] Tests
 - [ ] CST Visitor
 - [ ] helper for create LSP 
