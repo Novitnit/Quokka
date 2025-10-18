@@ -40,5 +40,10 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
+  },
+  "include": [
+    "src",
+    "src/tests/vitest.config.ts",       // ✅ ใส่ setup file ด้วย
+    "src/tests/**/*"  // ✅ ใส่โฟลเดอร์ tests ด้วย
+  ]
 }

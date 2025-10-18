@@ -1,3 +1,4 @@
+import { off } from 'process';
 import { LexingResult, QToken } from '../lexer';
 import { type Table } from './ParserTable/ActionAndGotoTable';
 import { Production } from './ParserTable/types';
@@ -10,9 +11,11 @@ interface CSTNode {
 interface CSTTokenNode {
     type: string;
     image: string;
-    token: QToken;
+    tokenIdx: number;
     StartColumn: number;
     EndColumn: number;
+    StartOffset: number;
+    EndOffset: number;
     line: number;
 }
 
@@ -45,7 +48,7 @@ export class Parser {
         while (true) {
             const state = this.StateStack[this.StateStack.length - 1] as number;
             const token = this.tokens[this.index];
-            if (!token) throw `${this.index} out of bounds ${this.tokens.length}`
+            if (!token) throw `${this.index} out of bounds ${this.tokens.length - 1}`
             // console.log(this.tokens[0])
             const action = this.Table.ActionTable.get(state)?.get(token.tokenType.tokenIndex);
 
@@ -67,6 +70,18 @@ export class Parser {
                         return this.getReturnParser();
                     }
                     this.index++;
+                    if (this.index >= this.tokens.length) {
+                        this.parserErrors.push({
+                            found: `Rule Error`,
+                            line: -1,
+                            startColumn: -1,
+                            endColumn: -1,
+                            ExpectedTokens:
+                                `No more tokens to parse. This may happen if the order of allTokens is incorrect. ` +
+                                `Try placing Identifier at the end of allTokens to avoid it matching keywords first.`,
+                        });
+                        return this.getReturnParser();
+                    }
                 }
                 continue;
             }
@@ -77,8 +92,10 @@ export class Parser {
                         image: token.image,
                         StartColumn: token.startColumn,
                         EndColumn: token.endColumn,
+                        StartOffset: token.startOffset,
+                        EndOffset: token.endOffset,
                         line: token.line,
-                        token: token,
+                        tokenIdx: token.tokenType.tokenIndex
                     }
                     this.cstNode.push(tokenNode)
                     this.StateStack.push(action.to)

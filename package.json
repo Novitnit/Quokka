@@ -4,13 +4,20 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.11.0",
   "devDependencies": {
-    "@types/node": "^24.7.2"
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.7.2",
+    "@vitest/ui": "^3.2.4",
+    "pretty-format": "^30.2.0",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
   }
 }

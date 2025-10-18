@@ -10,7 +10,7 @@
     - [X] Parser Rule --many
     - [X] Parser Productions Rule --many
     - [X] Parser Rule --subrule
-    - [ ] Parser Rule --useGroup
+    - [x] Parser Rule --useGroup
     - [X] Parser Productions Rule --subrule
     - [X] Parser create ItemFromProductions
     - [X] Parser buildStatesTable
