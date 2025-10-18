@@ -18,6 +18,6 @@
     - [X] Parser create ACTION Table
     - [X] Parser create GOTO Table
 - [X] Parser Class
-- [ ] Tests
+- [X] Tests
 - [ ] CST Visitor
 - [ ] helper for create LSP 
