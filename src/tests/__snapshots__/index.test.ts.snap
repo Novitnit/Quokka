@@ -196,6 +196,69 @@ exports[`Lexer > should tokenize simple let statement 1`] = `
 }
 `;
 
+exports[`Lexer > token 1`] = `
+{
+  "Groups": [
+    {
+      "groupIndex": -1,
+      "name": "SkipGroup",
+      "tokenIndexs": Set {
+        3,
+      },
+      "tokens": [
+        {
+          "name": "WhiteSpace",
+          "pattern": /\\\\s\\+/,
+          "tokenIndex": 3,
+        },
+      ],
+    },
+  ],
+  "errors": [],
+  "tokens": [
+    {
+      "endColumn": 3,
+      "endOffset": 2,
+      "image": "let",
+      "line": 1,
+      "startColumn": 1,
+      "startOffset": 0,
+      "tokenType": {
+        "name": "Let",
+        "pattern": /let/,
+        "tokenIndex": 0,
+      },
+    },
+    {
+      "endColumn": 8,
+      "endOffset": 7,
+      "image": "test",
+      "line": 1,
+      "startColumn": 5,
+      "startOffset": 4,
+      "tokenType": {
+        "name": "Identifier",
+        "pattern": /\\[a-zA-Z_\\]\\\\w\\*/,
+        "tokenIndex": 1,
+      },
+    },
+    {
+      "endColumn": 9,
+      "endOffset": 8,
+      "image": "<EOF>",
+      "line": 1,
+      "startColumn": 9,
+      "startOffset": 8,
+      "tokenType": {
+        "name": "<EOF>",
+        "pattern": /<EOF>/,
+        "tokenIndex": -1,
+      },
+    },
+  ],
+}
+`;
+
 exports[`Parser > should parse let statement with type correctly 1`] = `
 {
   "cst": {
@@ -305,56 +368,56 @@ exports[`Parser > should report syntax error if type is missing 1`] = `
 
 exports[`Parser Table > should build correct table for let statement with type 1`] = `
 {
-  "ActionTable": Map {
-    0 => Map {
-      0 => {
+  "ActionTable": {
+    "0": {
+      "0": {
         "to": 2,
         "type": "shift",
       },
     },
-    1 => Map {
-      -1 => {
+    "1": {
+      "-1": {
         "type": "accept",
       },
     },
-    2 => Map {
-      1 => {
+    "2": {
+      "1": {
         "to": 3,
         "type": "shift",
       },
     },
-    3 => Map {
-      4 => {
+    "3": {
+      "4": {
         "to": 4,
         "type": "shift",
       },
-      5 => {
+      "5": {
         "to": 5,
         "type": "shift",
       },
     },
-    4 => Map {
-      -1 => {
+    "4": {
+      "-1": {
         "prod": 1,
         "type": "reduce",
       },
     },
-    5 => Map {
-      -1 => {
+    "5": {
+      "-1": {
         "prod": 2,
         "type": "reduce",
       },
     },
   },
-  "GotoTable": Map {
-    0 => Map {
-      10000 => 1,
+  "GotoTable": {
+    "0": {
+      "10000": 1,
     },
-    1 => Map {},
-    2 => Map {},
-    3 => Map {},
-    4 => Map {},
-    5 => Map {},
+    "1": {},
+    "2": {},
+    "3": {},
+    "4": {},
+    "5": {},
   },
   "States": [
     {
@@ -466,17 +529,17 @@ exports[`Parser Table > should build correct table for let statement with type 1
       "transitions": Map {},
     },
   ],
-  "TokenMap": Map {
-    0 => "Let",
-    1 => "Identifier",
-    2 => "NumberLiteral",
-    3 => "WhiteSpace",
-    4 => "Typenumber",
-    5 => "Typestring",
-    -1 => "EOF",
+  "TokenMap": {
+    "-1": "EOF",
+    "0": "Let",
+    "1": "Identifier",
+    "2": "NumberLiteral",
+    "3": "WhiteSpace",
+    "4": "Typenumber",
+    "5": "Typestring",
   },
-  "nonterminalMap": Map {
-    "Main" => 10000,
+  "nonterminalMap": {
+    "Main": 10000,
   },
   "productions": [
     {

@@ -19,5 +19,5 @@
     - [X] Parser create GOTO Table
 - [X] Parser Class
 - [X] Tests
-- [ ] CST Visitor
+- [X] CST Visitor
 - [ ] helper for create LSP 
