@@ -41,6 +41,7 @@ export class Lexer {
     }
 
     public tokenize(AllToken: QTokennType[]): LexingResult {
+        this.errors = [];
         this.SkipGroup = createGroup({ name: "SkipGroup", tokens: this.SkipGroups , groupIndex: -1});
         const tokens: QToken[] = [];
         let pos = 0;

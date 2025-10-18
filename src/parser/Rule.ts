@@ -1,4 +1,3 @@
-import { a } from "vitest/dist/chunks/suite.d.FvehnV49.js";
 import { QGroup, QTokennType } from "../lexer";
 
 export type Impl = ConsumeRule | SubRule | OptionRule | ManyRule | OrRule;

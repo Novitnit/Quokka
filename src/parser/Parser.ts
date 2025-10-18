@@ -44,7 +44,11 @@ export class Parser {
         this.Table = typeof table === 'string' ? JSON.parse(table) as Table : table;
     }
 
-    public parse(input: LexingResult):CST {
+    public parse(input: LexingResult): CST {
+        this.StateStack = [0];
+        this.index = 0;
+        this.cstNode = [];
+        this.parserErrors = [];
         this.tokens = input.tokens as QToken[]
         let i = 0;
         while (true) {
@@ -145,8 +149,14 @@ export class Parser {
         }
     }
 
-    private getReturnParser() {
+    private getReturnParser(): CST {
         const root = this.cstNode[0] as CSTNode;
+        if (this.cstNode.length === 0) {
+            return {
+                cst: null,
+                errors: this.parserErrors
+            };
+        }
         const flattenedRoot = this.flattenMany(root);
         return {
             cst: flattenedRoot,
