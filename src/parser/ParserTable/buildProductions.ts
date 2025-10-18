@@ -3,14 +3,14 @@ import { Impl, Rule } from "../Rule";
 
 export class buildProductions {
     private Productions: Production[] = [];
-    private nonterminalMap = new Map<string, number>();
+    private nonterminalMap: Record<string, number> = {};
     private nonterminalCount = 10000;
 
     constructor(rule: Rule) {
         this.buildProductions(rule)
     }
 
-    public getnonterminalMap(): Map<string, number> {
+    public getnonterminalMap(): Record<string, number> {
         return this.nonterminalMap
     }
 
@@ -19,10 +19,10 @@ export class buildProductions {
     }
 
     private getNonterminalIndex(name: string): number {
-        if (!this.nonterminalMap.has(name)) {
-            this.nonterminalMap.set(name, this.nonterminalCount++);
+        if (!(name in this.nonterminalMap)) {
+            this.nonterminalMap[name] = this.nonterminalCount++;
         }
-        return this.nonterminalMap.get(name)!;
+        return this.nonterminalMap[name] as number;
     }
 
     private buildProductions(rule: Rule) {

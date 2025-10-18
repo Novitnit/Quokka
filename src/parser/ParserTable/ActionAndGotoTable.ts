@@ -3,12 +3,12 @@ import { getTokenMap } from "../../lexer";
 import { Production } from "./types";
 
 export interface Table {
-    ActionTable:ActionTable
-    GotoTable:GotoTable
-    TokenMap:Map<number,string>
-    States:State[]
-    productions:Production[]
-    nonterminalMap:Map<string, number>
+    ActionTable: Record<number, Record<number, Action>>;
+    GotoTable: Record<number, Record<number, number>>;
+    TokenMap: Record<number, string>;
+    States: State[];
+    productions: Production[];
+    nonterminalMap: Record<string, number>;
 }
 
 export type Action =
@@ -17,33 +17,33 @@ export type Action =
     | { type: 'accept' }
     | { type: 'error' };
 
-type ActionTable = Map<number, Map<number, Action>>;
-type GotoTable = Map<number, Map<number, number>>;
+type ActionTable = Record<number, Record<number, Action>>;
+type GotoTable = Record<number, Record<number, number>>;
 
 export class ActionAndGotoTable {
-    private ACTION: ActionTable = new Map();
-    private GOTO: GotoTable = new Map();
-    private TokenMap:Map<number,string> = new Map()
+    private ACTION: ActionTable = {};
+    private GOTO: GotoTable = {};
+    private TokenMap:Record<number,string> = {};
 
     constructor(
         private states: State[],
         private productions: Production[],
         private isNonterminal: (sym: number) => boolean,
-        private nonterminalMap: Map<string, number>,
+        private nonterminalMap: Record<string, number>,
     ) {
         this.build();
         this.TokenMap = getTokenMap()
-        this.TokenMap.set(-1,"EOF")
+        this.TokenMap[-1] = "EOF"
     }
 
     private build() {
         for (let stateIndex = 0; stateIndex < this.states.length; stateIndex++) {
             const state = this.states[stateIndex] as State;
 
-            if (!this.ACTION.has(stateIndex)) this.ACTION.set(stateIndex, new Map());
-            if (!this.GOTO.has(stateIndex)) this.GOTO.set(stateIndex, new Map());
-            const actionRow = this.ACTION.get(stateIndex)!;
-            const gotoRow = this.GOTO.get(stateIndex)!;
+            if (!this.ACTION[stateIndex]) this.ACTION[stateIndex] = {};
+            if (!this.GOTO[stateIndex]) this.GOTO[stateIndex] = {};
+            const actionRow = this.ACTION[stateIndex] as Record<number, Action>;
+            const gotoRow = this.GOTO[stateIndex] as Record<number, number>;
 
             for (const item of state.items) {
                 const prod = this.productions[item.productionIdx] as Production;
@@ -53,24 +53,24 @@ export class ActionAndGotoTable {
                     if (!this.isNonterminal(nextSym)) {
                         const to = state.transitions.get(nextSym);
                         if (to !== undefined) {
-                            actionRow.set(nextSym, { type: "shift", to });
+                            actionRow[nextSym] = { type: "shift", to };
                         }
                     }
                 } else {
                     if (prod.head === "S'") {
                         for (const la of item.lookaheads) {
-                            actionRow.set(la, { type: "accept" });
+                            actionRow[la] = { type: "accept" };
                         }
                     } else {
                         for (const la of item.lookaheads) {
-                            actionRow.set(la, { type: "reduce", prod: item.productionIdx });
+                            actionRow[la] = { type: "reduce", prod: item.productionIdx };
                         }
                     }
                 }
             }
             for (const [sym, target] of state.transitions.entries()) {
                 if (this.isNonterminal(sym)) {
-                    gotoRow.set(sym, target);
+                    gotoRow[sym] = target;
                 }
             }
         }
@@ -88,23 +88,23 @@ export class ActionAndGotoTable {
     }
 
     public getAction(state: number, terminal: number): Action {
-        return this.ACTION.get(state)?.get(terminal) ?? { type: "error" };
+        return this.ACTION[state]?.[terminal] ?? { type: "error" };
     }
 
     public getGoto(state: number, nonterminal: number): number | undefined {
-        return this.GOTO.get(state)?.get(nonterminal);
+        return this.GOTO[state]?.[nonterminal];
     }
     
     public dump() {
         console.log("=== ACTION TABLE ===");
-        for (const [s, row] of this.ACTION.entries()) {
-            for (const [sym, act] of row.entries()) {
+        for (const [s, row] of Object.entries(this.ACTION)) {
+            for (const [sym, act] of Object.entries(row)) {
                 console.log(`state ${s}, sym ${sym}:`, act);
             }
         }
         console.log("=== GOTO TABLE ===");
-        for (const [s, row] of this.GOTO.entries()) {
-            for (const [sym, to] of row.entries()) {
+        for (const [s, row] of Object.entries(this.GOTO)) {
+            for (const [sym, to] of Object.entries(row)) {
                 console.log(`state ${s}, sym ${sym} -> ${to}`);
             }
         }

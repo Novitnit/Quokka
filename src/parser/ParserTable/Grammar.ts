@@ -8,7 +8,7 @@ export type Production = {
 
 export class Grammar {
     public Productions: Production[] = [];
-    public nonterminalMap: Map<string, number> = new Map();
+    public nonterminalMap: Record<string, number> = {};
     public reverseNonterminalMap: Record<number, string> = {};
 
     constructor(rule: Rule) {
@@ -31,7 +31,7 @@ export class Grammar {
 
     private buildReverseNonterminalMap() {
         const reverse: Record<number, string> = {};
-        for (const [name, idx] of this.nonterminalMap.entries()) {
+        for (const [name, idx] of Object.entries(this.nonterminalMap)) {
             reverse[idx] = name;
         }
         this.reverseNonterminalMap = reverse;

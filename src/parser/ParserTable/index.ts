@@ -13,7 +13,7 @@ export type State = {
 export class ParserTable {
     private Productions: Production[] = [];
     private Items: Item[] = [];
-    private nonterminalMap: Map<string, number> = new Map<string, number>();
+    private nonterminalMap: Record<string, number> = {};
     private reverseNonterminalMap: Record<number, string> = {};
     private States: State[] = [];
     private actionGotoTable: ActionAndGotoTable;
@@ -157,7 +157,7 @@ export class ParserTable {
 
     private buildReverseNonterminalMap() {
         const reverse: Record<number, string> = {};
-        for (const [name, idx] of this.nonterminalMap.entries()) {
+        for (const [name, idx] of Object.entries(this.nonterminalMap)) {
             reverse[idx] = name;
         }
         this.reverseNonterminalMap = reverse;

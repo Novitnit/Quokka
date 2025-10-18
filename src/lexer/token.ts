@@ -12,12 +12,12 @@ export interface QTokennType {
     tokenIndex: number;
 }
 
-const TokenMap:Map<number,string> = new Map()
+const TokenMap:Record<number,string> = {}
 
 export function createToken(config: TokenConfig): QTokennType {
     const name = config.name;
     const pattern = config.pattern;
-    TokenMap.set(tokenIndex,name)
+    TokenMap[tokenIndex] = name
     const token: QTokennType = {
         name,
         pattern,

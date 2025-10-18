@@ -1,14 +1,19 @@
-import { off } from 'process';
 import { LexingResult, QToken } from '../lexer';
 import { type Table } from './ParserTable/ActionAndGotoTable';
 import { Production } from './ParserTable/types';
 
-interface CSTNode {
+export interface CSTNode {
+    CstType: "Node";
     type: string;
     children: (CSTNode | CSTTokenNode)[];
 }
 
-interface CSTTokenNode {
+export interface CST {
+    cst: CSTNode | CSTTokenNode | null;
+    errors: parserError[];
+}
+export interface CSTTokenNode {
+    CstType: "TokenNode";
     type: string;
     image: string;
     tokenIdx: number;
@@ -19,7 +24,7 @@ interface CSTTokenNode {
     line: number;
 }
 
-interface parserError {
+export interface parserError {
     found: string
     line: number
     startColumn: number
@@ -28,7 +33,7 @@ interface parserError {
 }
 
 export class Parser {
-    private Table: Table;
+    public Table: Table;
     private StateStack: number[] = [0]
     private index = 0
     public parserErrors: parserError[] = []
@@ -36,13 +41,13 @@ export class Parser {
     private cstNode: (CSTNode | CSTTokenNode)[] = [];
 
     constructor(table: Table | string) {
-        this.Table = table as Table
+        this.Table = typeof table === 'string' ? JSON.parse(table) as Table : table;
     }
 
     /**
      * parse the input string
      */
-    public parse(input: LexingResult) {
+    public parse(input: LexingResult):CST {
         this.tokens = input.tokens as QToken[]
         let i = 0;
         while (true) {
@@ -50,7 +55,7 @@ export class Parser {
             const token = this.tokens[this.index];
             if (!token) throw `${this.index} out of bounds ${this.tokens.length - 1}`
             // console.log(this.tokens[0])
-            const action = this.Table.ActionTable.get(state)?.get(token.tokenType.tokenIndex);
+            const action = this.Table.ActionTable[state]?.[token.tokenType.tokenIndex];
 
             if (!action) {
                 const expectedTokens = this.getExpectedToken(state, this.Table);
@@ -63,7 +68,7 @@ export class Parser {
                 })
                 while (this.index < this.tokens.length) {
                     const lookaheads = this.tokens[this.index] as QToken;
-                    if (this.Table.ActionTable.get(state)?.get(lookaheads.tokenType.tokenIndex)) {
+                    if (this.Table.ActionTable[state]?.[lookaheads.tokenType.tokenIndex]) {
                         break
                     }
                     if (token.tokenType.tokenIndex === -1) {
@@ -88,6 +93,7 @@ export class Parser {
             switch (action.type) {
                 case 'shift': {
                     const tokenNode: CSTTokenNode = {
+                        CstType: "TokenNode",
                         type: token.tokenType.name,
                         image: token.image,
                         StartColumn: token.startColumn,
@@ -111,6 +117,7 @@ export class Parser {
                     );
                     let finalChildren = children;
                     const newNode: CSTNode = {
+                        CstType: "Node",
                         type: prod.head,
                         children: finalChildren
                     };
@@ -121,8 +128,8 @@ export class Parser {
                     }
 
                     const gotoState = this.StateStack[this.StateStack.length - 1] as number;
-                    const headId = this.Table.nonterminalMap.get(prod.head) as number;
-                    const next = this.Table.GotoTable.get(gotoState)?.get(headId);
+                    const headId = this.Table.nonterminalMap[prod.head] as number;
+                    const next = this.Table.GotoTable[gotoState]?.[headId];
 
                     if (next === undefined) {
                         throw new Error(`Goto error: state ${gotoState} head ${prod.head}`);
@@ -193,12 +200,12 @@ export class Parser {
 
 
     private getExpectedToken(state: number, table: Table): string | string[] | null {
-        const actionRow = table.ActionTable.get(state);
+        const actionRow = table.ActionTable[state];
         if (!actionRow) return null;
         const expectedTokens: string[] = [];
-        for (const [tokenIndex, action] of actionRow.entries()) {
+        for (const [tokenIndex, action] of Object.entries(actionRow)) {
             if (action.type !== 'error') {
-                const tokenName = table.TokenMap.get(tokenIndex);
+                const tokenName = table.TokenMap[Number(tokenIndex)];
                 if (tokenName) {
                     expectedTokens.push(tokenName);
                 }

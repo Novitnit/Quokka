@@ -1,4 +1,3 @@
 dist/
 node_modules/
 *.log
-__snapshots__/
