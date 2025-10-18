@@ -6,9 +6,6 @@ export type Item = {
     lookaheads: Set<number>;
 };
 
-/**
- * แปลง Production ทั้งหมดให้กลายเป็นรายการ Item
- */
 export function createItemsFromProductions(productions: Production[]): Item[] {
     const items: Item[] = [];
     for (let productionIdx = 0; productionIdx < productions.length; productionIdx++) {
@@ -21,9 +18,6 @@ export function createItemsFromProductions(productions: Production[]): Item[] {
     return items;
 }
 
-/**
- * แปลงรายการ Items เป็น key string สำหรับเช็ค state ซ้ำ
- */
 export function itemsKey(items: Item[]): string {
     return items
         .map(i => {

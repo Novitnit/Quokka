@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { createGroup, createRule, createToken, CSTVisitor, Lexer, Parser, ParserTable } from "../index";
 
-// ---------- Token Definitions ----------
 const Let = createToken({ name: "Let", pattern: /let/ });
 const Identifier = createToken({ name: "Identifier", pattern: /[a-zA-Z_]\w*/ });
 const NumberLiteral = createToken({ name: "NumberLiteral", pattern: /\d+/ });
@@ -131,9 +130,7 @@ describe("CST Visitor", () => {
 
     const visitor = new CSTVisitor(cst);
     visitor.visitRegister("Main", (node: any) => {
-      // node.name = "modifiedVar";
       return node.children
-      // return node;
     });
 
     const modifiedCST = visitor.visit();

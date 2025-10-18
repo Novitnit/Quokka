@@ -44,9 +44,6 @@ export class Parser {
         this.Table = typeof table === 'string' ? JSON.parse(table) as Table : table;
     }
 
-    /**
-     * parse the input string
-     */
     public parse(input: LexingResult):CST {
         this.tokens = input.tokens as QToken[]
         let i = 0;
@@ -54,7 +51,6 @@ export class Parser {
             const state = this.StateStack[this.StateStack.length - 1] as number;
             const token = this.tokens[this.index];
             if (!token) throw `${this.index} out of bounds ${this.tokens.length - 1}`
-            // console.log(this.tokens[0])
             const action = this.Table.ActionTable[state]?.[token.tokenType.tokenIndex];
 
             if (!action) {
@@ -215,5 +211,3 @@ export class Parser {
     }
 
 }
-
-// table.TokenMap.get(id) ||

@@ -24,13 +24,10 @@ export interface Error {
 }
 
 export class Lexer {
-    //กลุ่มสำหรับข้าม
     public SkipGroups: QTokennType[] = []
 
-    //เก็บตำแหน่งขึ้นบรรทัดใหม่
     private lineBreaks: number[] = [];
 
-    //setUp 
     private SkipGroup: QGroup = createGroup({ name: "SkipGroup", tokens: this.SkipGroups , groupIndex: -1});
     private errors: Error[] = []
 
@@ -88,11 +85,10 @@ export class Lexer {
                     Offset: pos
                 });
                 pos++;
-                break; // หยุดการทำงานเมื่อเจอข้อผิดพลาด
+                break;
             }
         }
 
-        //add EOF
         const eofOffset = this.input.length;
         const { line: eofLine, column: eofColumn } = this.getLineColumn(eofOffset);
         tokens.push({

@@ -46,7 +46,6 @@ export interface QGroup {
 const allGroups: QGroup[] = [];
 const tokenToGroupMap = new Map<number, QGroup>();
 
-// function สำหรับสร้าง group ของ Token
 export function createGroup(config: GroupConfig): QGroup {
     const groupIdx = config.groupIndex ?? groupIndex++;
     const existingIndex = allGroups.findIndex(g => g.groupIndex === groupIdx);

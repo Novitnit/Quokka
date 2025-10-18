@@ -53,7 +53,6 @@ export function createRule(name: string, callback: (ctx: CreateRuleContext) => v
             const childBody: Impl[] = [];
             const childCtx: CreateRuleContext = createChildContext(childBody);
             cb(childCtx);
-            // option มี child เพียงตัวเดียว → ถ้าหลาย consume จะ wrap ด้วย subrule
             body.push({ implType: "option", child: wrapBodyAsImpl(childBody) });
         },
         many(cb) {
@@ -96,9 +95,6 @@ export function createRule(name: string, callback: (ctx: CreateRuleContext) => v
     return { name, body };
 }
 
-/**
- * Utility: สร้าง ctx child
- */
 function createChildContext(body: Impl[]): CreateRuleContext {
     return {
         consume: (token) => {
@@ -147,14 +143,8 @@ function createChildContext(body: Impl[]): CreateRuleContext {
     };
 }
 
-/**
- * Utility: แปลง body array → Impl เดียว
- * - ถ้า body มี 1 element ใช้ element นั้น
- * - ถ้ามีหลาย element ห่อเป็น subrule
- */
 function wrapBodyAsImpl(body: Impl[]): Impl {
     if (body[0] !== undefined && body.length === 1) return body[0];
-    // สร้าง subRule inline สำหรับ sequence
     return {
         implType: "subrule",
         getRule: () => ({ name: "<inline>", body })
