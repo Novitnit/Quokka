@@ -11,6 +11,8 @@ export interface CSTNode {
 export interface CST {
     cst: CSTNode | CSTTokenNode | null;
     errors: parserError[];
+    StateStack:number[];
+    ErrorStateStack:number[];
 }
 export interface CSTTokenNode {
     CstType: "TokenNode";
@@ -35,6 +37,7 @@ export interface parserError {
 export class Parser {
     public Table: Table;
     private StateStack: number[] = [0]
+    private errorStateStack: number[] = [];
     private index = 0
     public parserErrors: parserError[] = []
     private tokens: QToken[] = []
@@ -59,6 +62,7 @@ export class Parser {
 
             if (!action) {
                 const expectedTokens = this.getExpectedToken(state, this.Table);
+                this.errorStateStack = [...this.StateStack];
                 this.parserErrors.push({
                     found: `${token.image}`,
                     line: token.line,
@@ -154,13 +158,17 @@ export class Parser {
         if (this.cstNode.length === 0) {
             return {
                 cst: null,
-                errors: this.parserErrors
+                errors: this.parserErrors,
+                StateStack:this.StateStack,
+                ErrorStateStack:this.errorStateStack
             };
         }
         const flattenedRoot = this.flattenMany(root);
         return {
             cst: flattenedRoot,
-            errors: this.parserErrors
+            errors: this.parserErrors,
+            StateStack:this.StateStack,
+            ErrorStateStack:this.errorStateStack
         }
     }
 

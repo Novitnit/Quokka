@@ -1,19 +1,32 @@
-import { CST, CSTNode, CSTTokenNode } from "../parser";
+import { CST, CSTNode, CSTTokenNode, parserError } from "../parser";
+
+export interface VisitorResult {
+    cst: CSTNode | CSTTokenNode;
+    errors: parserError[];
+    StateStack: number[];
+}
 
 export class CSTVisitor {
-
     private callbacks: Record<string, (...args: any[]) => void> = {};
     private cst: CST;
     private cstOld: CSTNode | CSTTokenNode | null;
+    private cstErrors: parserError[] = [];
+    private StateStack: number[] = [];
 
     constructor(cst: CST) {
         this.cst = cst;
         this.cstOld = structuredClone(cst.cst);
+        this.StateStack = cst.StateStack;
     }
 
-    public visit() {
+    public visit(): VisitorResult {
         if (!this.cst.cst) throw new Error("CST is empty");
-        return this.traverseIterative(this.cst.cst);
+        if (this.cst.errors.length > 0) this.cstErrors = this.cst.errors;
+        return {
+            cst: this.traverseIterative(this.cst.cst),
+            errors: this.cstErrors,
+            StateStack:this.StateStack
+        };
     }
 
     public visitRegister(name: string, callbacks: (...args: any[]) => void): void {
