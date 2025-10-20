@@ -14,27 +14,27 @@ const allToken = [Let, NumberLiteral, Typenumber, Typestring, WhiteSpace, Identi
 describe("Lexer", () => {
   it("tokenize successfully", () => {
     const input = "let test";
-    const lexer = new Lexer(input);
+    const lexer = new Lexer(allToken);
     lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(allToken);
+    const tokens = lexer.tokenize(input);
 
     expect(tokens).toMatchSnapshot()
   });
 
   it("handle whitespace and newline correctly", () => {
     const input = "let    myVar\nnumber";
-    const lexer = new Lexer(input);
+    const lexer = new Lexer(allToken);
     lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(allToken);
+    const tokens = lexer.tokenize(input);
 
     expect(tokens).toMatchSnapshot();
   });
 
   it("tokenize report invalid character", () => {
     const input = "let ~";
-    const lexer = new Lexer(input);
+    const lexer = new Lexer(allToken);
     lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(allToken);
+    const tokens = lexer.tokenize(input);
 
     expect(tokens).toMatchSnapshot()
   });
@@ -64,9 +64,9 @@ describe("Parser", () => {
     const parser = new Parser(parserTable.getTable());
 
     const input = "let test";
-    const lexer = new Lexer(input);
+  const lexer = new Lexer(allToken);
     lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(allToken);
+  const tokens = lexer.tokenize(input);
 
     const result = parser.parse(tokens);
     expect(result).toMatchSnapshot()
@@ -83,9 +83,9 @@ describe("Parser", () => {
     const parser = new Parser(parserTable.getTable());
 
     const input = "let myVar number";
-    const lexer = new Lexer(input);
+  const lexer = new Lexer(allToken);
     lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(allToken);
+  const tokens = lexer.tokenize(input);
 
     const result = parser.parse(tokens);
     expect(result).toMatchSnapshot()
@@ -102,9 +102,9 @@ describe("Parser", () => {
     const parser = new Parser(parserTable.getTable());
 
     const input = "let myVar";
-    const lexer = new Lexer(input);
+  const lexer = new Lexer(allToken);
     lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(allToken);
+  const tokens = lexer.tokenize(input);
 
     const result = parser.parse(tokens);
     expect(result).toMatchSnapshot()
@@ -122,9 +122,9 @@ describe("CST Visitor", () => {
     const parser = new Parser(parserTable.getTable());
 
     const input = "let testVar";
-    const lexer = new Lexer(input);
+  const lexer = new Lexer(allToken);
     lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(allToken);
+  const tokens = lexer.tokenize(input);
 
     const cst = parser.parse(tokens);
 
@@ -135,30 +135,37 @@ describe("CST Visitor", () => {
 
     const modifiedCST = visitor.visit();
     expect(modifiedCST).toMatchInlineSnapshot(`
-      [
-        {
-          "CstType": "TokenNode",
-          "EndColumn": 3,
-          "EndOffset": 2,
-          "StartColumn": 1,
-          "StartOffset": 0,
-          "image": "let",
-          "line": 1,
-          "tokenIdx": 0,
-          "type": "Let",
-        },
-        {
-          "CstType": "TokenNode",
-          "EndColumn": 11,
-          "EndOffset": 10,
-          "StartColumn": 5,
-          "StartOffset": 4,
-          "image": "testVar",
-          "line": 1,
-          "tokenIdx": 1,
-          "type": "Identifier",
-        },
-      ]
+      {
+        "StateStack": [
+          0,
+          1,
+        ],
+        "cst": [
+          {
+            "CstType": "TokenNode",
+            "EndColumn": 3,
+            "EndOffset": 2,
+            "StartColumn": 1,
+            "StartOffset": 0,
+            "image": "let",
+            "line": 1,
+            "tokenIdx": 0,
+            "type": "Let",
+          },
+          {
+            "CstType": "TokenNode",
+            "EndColumn": 11,
+            "EndOffset": 10,
+            "StartColumn": 5,
+            "StartOffset": 4,
+            "image": "testVar",
+            "line": 1,
+            "tokenIdx": 1,
+            "type": "Identifier",
+          },
+        ],
+        "errors": [],
+      }
     `);
   });
 
@@ -177,9 +184,9 @@ describe("CST Visitor", () => {
     const parser = new Parser(parserTable.getTable());
 
     const input = "let testVar number";
-    const lexer = new Lexer(input);
+  const lexer = new Lexer(allToken);
     lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(allToken);
+  const tokens = lexer.tokenize(input);
     const cst = parser.parse(tokens);
 
     const visitor = new CSTVisitor(cst);

@@ -31,25 +31,27 @@ export class Lexer {
     private SkipGroup: QGroup = createGroup({ name: "SkipGroup", tokens: this.SkipGroups , groupIndex: -1});
     private errors: Error[] = []
 
-    constructor(private input: string, private AllGroup?: QGroup[]) {
+    constructor(private AllToken: QTokennType[], private AllGroup?: QGroup[]) {
+        this.lineBreaks = [];
+    }
+
+    public tokenize(input: string): LexingResult {
+        this.errors = [];
+        this.SkipGroup = createGroup({ name: "SkipGroup", tokens: this.SkipGroups , groupIndex: -1});
+        const tokens: QToken[] = [];
+        let pos = 0;
+
         this.lineBreaks = [];
         for (let i = 0; i < input.length; i++) {
             if (input[i] === '\n') {
                 this.lineBreaks.push(i);
             }
         }
-    }
 
-    public tokenize(AllToken: QTokennType[]): LexingResult {
-        this.errors = [];
-        this.SkipGroup = createGroup({ name: "SkipGroup", tokens: this.SkipGroups , groupIndex: -1});
-        const tokens: QToken[] = [];
-        let pos = 0;
-
-        while (pos < this.input.length) {
+        while (pos < input.length) {
             let matched = false;
-            const substring = this.input.slice(pos);
-            for (const tokenType of AllToken) {
+            const substring = input.slice(pos);
+            for (const tokenType of this.AllToken) {
                 const regexp = typeof tokenType.pattern === 'string' ? new RegExp('^' + tokenType.pattern) : new RegExp('^' + tokenType.pattern.source);
                 const match = substring.match(regexp);
                 if (match) {
@@ -80,7 +82,7 @@ export class Lexer {
             if (!matched) {
                 const { line, column } = this.getLineColumn(pos);
                 this.errors.push({
-                    message: `Unexpected character '${this.input[pos]}'`,
+                    message: `Unexpected character '${input[pos]}'`,
                     line,
                     column,
                     Offset: pos
@@ -90,7 +92,7 @@ export class Lexer {
             }
         }
 
-        const eofOffset = this.input.length;
+        const eofOffset = input.length;
         const { line: eofLine, column: eofColumn } = this.getLineColumn(eofOffset);
         tokens.push({
             image: "<EOF>",

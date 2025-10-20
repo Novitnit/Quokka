@@ -57,6 +57,7 @@ export class Parser {
         while (true) {
             const state = this.StateStack[this.StateStack.length - 1] as number;
             const token = this.tokens[this.index];
+            console.log("state",state)
             if (!token) throw `${this.index} out of bounds ${this.tokens.length - 1}`
             const action = this.Table.ActionTable[state]?.[token.tokenType.tokenIndex];
 

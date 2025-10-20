@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Lexer > should handle whitespace and newline correctly 1`] = `
+exports[`Lexer > handle whitespace and newline correctly 1`] = `
 {
   "Groups": [
     {
@@ -76,7 +76,7 @@ exports[`Lexer > should handle whitespace and newline correctly 1`] = `
 }
 `;
 
-exports[`Lexer > should report invalid character 1`] = `
+exports[`Lexer > tokenize report invalid character 1`] = `
 {
   "Groups": [
     {
@@ -133,70 +133,7 @@ exports[`Lexer > should report invalid character 1`] = `
 }
 `;
 
-exports[`Lexer > should tokenize simple let statement 1`] = `
-{
-  "Groups": [
-    {
-      "groupIndex": -1,
-      "name": "SkipGroup",
-      "tokenIndexs": Set {
-        3,
-      },
-      "tokens": [
-        {
-          "name": "WhiteSpace",
-          "pattern": /\\\\s\\+/,
-          "tokenIndex": 3,
-        },
-      ],
-    },
-  ],
-  "errors": [],
-  "tokens": [
-    {
-      "endColumn": 3,
-      "endOffset": 2,
-      "image": "let",
-      "line": 1,
-      "startColumn": 1,
-      "startOffset": 0,
-      "tokenType": {
-        "name": "Let",
-        "pattern": /let/,
-        "tokenIndex": 0,
-      },
-    },
-    {
-      "endColumn": 8,
-      "endOffset": 7,
-      "image": "test",
-      "line": 1,
-      "startColumn": 5,
-      "startOffset": 4,
-      "tokenType": {
-        "name": "Identifier",
-        "pattern": /\\[a-zA-Z_\\]\\\\w\\*/,
-        "tokenIndex": 1,
-      },
-    },
-    {
-      "endColumn": 9,
-      "endOffset": 8,
-      "image": "<EOF>",
-      "line": 1,
-      "startColumn": 9,
-      "startOffset": 8,
-      "tokenType": {
-        "name": "<EOF>",
-        "pattern": /<EOF>/,
-        "tokenIndex": -1,
-      },
-    },
-  ],
-}
-`;
-
-exports[`Lexer > token 1`] = `
+exports[`Lexer > tokenize successfully 1`] = `
 {
   "Groups": [
     {
@@ -261,6 +198,11 @@ exports[`Lexer > token 1`] = `
 
 exports[`Parser > should parse let statement with type correctly 1`] = `
 {
+  "ErrorStateStack": [],
+  "StateStack": [
+    0,
+    1,
+  ],
   "cst": {
     "CstType": "Node",
     "children": [
@@ -306,6 +248,11 @@ exports[`Parser > should parse let statement with type correctly 1`] = `
 
 exports[`Parser > should parse simple let statement 1`] = `
 {
+  "ErrorStateStack": [],
+  "StateStack": [
+    0,
+    1,
+  ],
   "cst": {
     "CstType": "Node",
     "children": [
@@ -340,6 +287,16 @@ exports[`Parser > should parse simple let statement 1`] = `
 
 exports[`Parser > should report syntax error if type is missing 1`] = `
 {
+  "ErrorStateStack": [
+    0,
+    2,
+    3,
+  ],
+  "StateStack": [
+    0,
+    2,
+    3,
+  ],
   "cst": {
     "CstType": "TokenNode",
     "EndColumn": 3,
@@ -366,7 +323,7 @@ exports[`Parser > should report syntax error if type is missing 1`] = `
 }
 `;
 
-exports[`Parser Table > should build correct table for let statement with type 1`] = `
+exports[`Parser Table > successfully 1`] = `
 {
   "ActionTable": {
     "0": {

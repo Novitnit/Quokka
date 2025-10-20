@@ -33,7 +33,7 @@ export class ParserTable {
         );
     }
 
-    public getTable(){
+    public getTable() {
         return this.actionGotoTable.getTable()
     }
 
@@ -112,18 +112,27 @@ export class ParserTable {
         return Array.from(result);
     }
 
-    private firstOfSymbol(sym: number): number[] {
+    private firstOfSymbol(sym: number, visited = new Set<number>()): number[] {
+        if (visited.has(sym)) return [];
+        visited.add(sym);
         if (!this.isNonterminal(sym)) return [sym];
+
         const name = this.reverseNonterminalMap[sym];
         if (!name) return [];
+
         const prods = this.Productions.filter(p => p.head === name);
         const result = new Set<number>();
+
         for (const p of prods) {
             if (p.body.length === 0) continue;
             for (const s of p.body) {
-                const firstS = this.firstOfSymbol(s);
-                for (const t of firstS) result.add(t);
-                if (!this.canBeEmptySymbol(s)) break;
+                const firstS = this.firstOfSymbol(s, visited);
+                for (const t of firstS) {
+                    result.add(t);
+                }
+                if (!this.canBeEmptySymbol(s)) {
+                    break;
+                }
             }
         }
         return Array.from(result);
