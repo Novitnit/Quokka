@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { createGroup, createRule, createToken, CSTVisitor, Lexer, Parser, ParserTable } from "../index.js";
 import { buildProductions } from "../parser/ParserTable/buildProductions.js";
 import { ActionAndGotoTable } from "../parser/ParserTable/ActionAndGotoTable.js";
 import { State } from "../parser/ParserTable/index.js";
+import { createToken , createGroup, Lexer} from "../lexer/index.js";
+import { Parser, createRule, ParserTable } from "../parser/index.js";
+import { CSTVisitor } from "../CstVisitor/index.js";
 
 const Let = createToken({ name: "Let", pattern: /let/ });
 const Identifier = createToken({ name: "Identifier", pattern: /[a-zA-Z_]\w*/ });
