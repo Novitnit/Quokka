@@ -3,9 +3,17 @@
   "version": "0.0.1",
   "description": "",
   "main": "dist/index.js",
+  "type": "commonjs",
   "scripts": {
+    "dev": "tsup --watch",
     "test": "vitest",
     "ui": "vitest --ui"
+  },
+  "exports":{
+    ".":{
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
   "keywords": [],
   "author": "",
@@ -19,6 +27,8 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
   }
 }
