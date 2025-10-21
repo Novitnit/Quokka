@@ -1,6 +1,8 @@
 import { Production } from "./types";
 import { Impl, Rule } from "../Rule";
 
+let manyCount = 0;
+
 export class buildProductions {
     private Productions: Production[] = [];
     private nonterminalMap: Record<string, number> = {};
@@ -84,7 +86,7 @@ export class buildProductions {
                 return acc.map(a => [...a, nonterminalIdx]);
             }
             case "many": {
-                const manyName = `MANY_${Math.random().toString(36).slice(2)}`;
+                const manyName = `MANY_${manyCount++}`;
                 const manyIdx = this.getNonterminalIndex(manyName);
                 const childBodies = this.expandImpl(impl.child, [[]]);
                 this.Productions.push({

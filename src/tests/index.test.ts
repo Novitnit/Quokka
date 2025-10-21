@@ -1,198 +1,188 @@
 import { describe, it, expect } from "vitest";
 import { createGroup, createRule, createToken, CSTVisitor, Lexer, Parser, ParserTable } from "../index";
+import { buildProductions } from "../parser/ParserTable/buildProductions";
+import { ActionAndGotoTable } from "../parser/ParserTable/ActionAndGotoTable";
+import { State } from "../parser/ParserTable";
 
 const Let = createToken({ name: "Let", pattern: /let/ });
 const Identifier = createToken({ name: "Identifier", pattern: /[a-zA-Z_]\w*/ });
+const Equals = createToken({ name: "Equals", pattern: /=/ });
 const NumberLiteral = createToken({ name: "NumberLiteral", pattern: /\d+/ });
 const WhiteSpace = createToken({ name: "WhiteSpace", pattern: /\s+/ });
 const Typenumber = createToken({ name: "Typenumber", pattern: /number/ });
 const Typestring = createToken({ name: "Typestring", pattern: /string/ });
 
 const TypeGroup = createGroup({ name: "TypeGroup", tokens: [Typenumber, Typestring] });
-const allToken = [Let, NumberLiteral, Typenumber, Typestring, WhiteSpace, Identifier];
+const allTokens = [Let, Equals, NumberLiteral, Typenumber, Typestring, WhiteSpace, Identifier];
+
+const inputsucceed = `let test = 10`
+const inputRulefail = `let 123 test =`
+const inputfail = `let = 10 ~`
+
+const lexer = new Lexer(allTokens)
+lexer.SkipGroups = [WhiteSpace];
 
 describe("Lexer", () => {
-  it("tokenize successfully", () => {
-    const input = "let test";
-    const lexer = new Lexer(allToken);
-    lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(input);
-
-    expect(tokens).toMatchSnapshot()
+  it("create token", () => {
+    expect(Let).toMatchSnapshot();
   });
 
-  it("handle whitespace and newline correctly", () => {
-    const input = "let    myVar\nnumber";
-    const lexer = new Lexer(allToken);
-    lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(input);
-
-    expect(tokens).toMatchSnapshot();
+  it("create group", () => {
+    expect(TypeGroup).toMatchSnapshot();
   });
 
-  it("tokenize report invalid character", () => {
-    const input = "let ~";
-    const lexer = new Lexer(allToken);
-    lexer.SkipGroups = [WhiteSpace];
-    const tokens = lexer.tokenize(input);
+  it("tokenize succeed", () => {
+    const lexResult = lexer.tokenize(inputsucceed);
+    expect(lexResult).toMatchSnapshot();
+  })
 
-    expect(tokens).toMatchSnapshot()
+  it("tokenize fail", () => {
+    const lexResult = lexer.tokenize(inputfail);
+    expect(lexResult.errors.length).toBeGreaterThan(0);
+  });
+
+});
+
+const Program = createRule("Program", (ctx) => {
+  ctx.many((ctx) => {
+    ctx.subRule(() => LetStatement);
   });
 });
 
-describe("Parser Table", () => {
-  it("successfully", () => {
-    const Main = createRule("Main", (r) => {
-      r.consume(Let);
-      r.consume(Identifier);
-      r.useGroup(TypeGroup);
+const LetStatement = createRule("LetStatement", (ctx) => {
+  ctx.consume(Let);
+  ctx.consume(Identifier);
+  ctx.consume(Equals);
+  ctx.consume(NumberLiteral);
+  ctx.option((ctx) => {
+    ctx.useGroup(TypeGroup);
+  })
+});
+
+
+describe("Rule", () => {
+  it("test consume", () => {
+    const RuleConsume = createRule("RuleConsume", (ctx) => {
+      ctx.consume(Let);
+      ctx.consume(Identifier);
     });
+    expect(RuleConsume).toMatchSnapshot();
+  })
 
-    const parserTable = new ParserTable(Main);
-    expect(parserTable.getTable()).toMatchSnapshot();
+  it("test option", () => {
+    const RuleOption = createRule("RuleOption", (ctx) => {
+      ctx.consume(Let);
+      ctx.option((ctx) => {
+        ctx.consume(Identifier);
+      })
+    });
+    expect(RuleOption).toMatchSnapshot();
+  })
+
+  it("test many", () => {
+    const RuleMany = createRule("RuleMany", (ctx) => {
+      ctx.consume(Let);
+      ctx.many((ctx) => {
+        ctx.consume(Identifier);
+      })
+    });
+    expect(RuleMany).toMatchSnapshot();
+  })
+
+  it("test useGroup", () => {
+    const RuleUseGroup = createRule("RuleUseGroup", (ctx) => {
+      ctx.consume(Let);
+      ctx.useGroup(TypeGroup);
+    });
+    expect(RuleUseGroup).toMatchSnapshot();
+  });
+
+  it("test subRule", () => {
+    const SubRuleTest = createRule("SubRuleTest", (ctx) => {
+      ctx.subRule(() => LetStatement);
+    });
+    expect(SubRuleTest).toMatchSnapshot();
+  });
+
+  it("test or", () => {
+    const RuleOr = createRule("RuleOr", (ctx) => {
+      ctx.consume(Let);
+      ctx.or([
+        (ctx) => ctx.consume(Typenumber),
+        (ctx) => ctx.consume(Typestring)
+      ]);
+    });
+    expect(RuleOr).toMatchSnapshot();
   });
 });
+
+describe("ParserTable", () => {
+  it("create Production Table", () => {
+    const ProductionTable = new buildProductions(Program);
+    expect(ProductionTable.getProductions()).toMatchSnapshot();
+  })
+
+  it("create Action and Goto Table", () => {
+    let state: State[] = []
+    const ProductionTable = new buildProductions(Program);
+    function isNonterminal(sym: number): boolean {
+      return sym >= 10000;
+    }
+    const NonterminalMap = ProductionTable.getnonterminalMap();
+    const ActionTable = new ActionAndGotoTable(state, ProductionTable.getProductions(), isNonterminal.bind(this), NonterminalMap);
+  })
+
+  it("create Parser Table", () => {
+    const parserTable = new ParserTable(Program);
+    expect(parserTable.getTable()).toMatchSnapshot();
+  })
+})
 
 describe("Parser", () => {
-  it("should parse simple let statement", () => {
-    const Main = createRule("Main", (r) => {
-      r.consume(Let);
-      r.consume(Identifier);
-    });
-
-    const parserTable = new ParserTable(Main);
+  it("parse Rule succeed", () => {
+    const lexResult = lexer.tokenize(inputsucceed);
+    const parserTable = new ParserTable(Program);
     const parser = new Parser(parserTable.getTable());
+    const cst = parser.parse(lexResult);
 
-    const input = "let test";
-  const lexer = new Lexer(allToken);
-    lexer.SkipGroups = [WhiteSpace];
-  const tokens = lexer.tokenize(input);
-
-    const result = parser.parse(tokens);
-    expect(result).toMatchSnapshot()
+    expect(cst).toMatchSnapshot();
   });
 
-  it("should parse let statement with type correctly", () => {
-    const Main = createRule("Main", (r) => {
-      r.consume(Let);
-      r.consume(Identifier);
-      r.useGroup(TypeGroup);
-    });
-
-    const parserTable = new ParserTable(Main);
+  it("parse Rule fail", () => {
+    const lexResult = lexer.tokenize(inputRulefail);
+    const parserTable = new ParserTable(Program);
     const parser = new Parser(parserTable.getTable());
+    const cst = parser.parse(lexResult);
 
-    const input = "let myVar number";
-  const lexer = new Lexer(allToken);
-    lexer.SkipGroups = [WhiteSpace];
-  const tokens = lexer.tokenize(input);
-
-    const result = parser.parse(tokens);
-    expect(result).toMatchSnapshot()
+    expect(cst).toMatchSnapshot();
   });
+})
 
-  it("should report syntax error if type is missing", () => {
-    const Main = createRule("Main", (r) => {
-      r.consume(Let);
-      r.consume(Identifier);
-      r.useGroup(TypeGroup);
-    });
-
-    const parserTable = new ParserTable(Main);
+describe("CSTVisitor", () => {
+  it("visit Register req", () => {
+    const lexResult = lexer.tokenize(inputsucceed);
+    const parserTable = new ParserTable(Program);
     const parser = new Parser(parserTable.getTable());
-
-    const input = "let myVar";
-  const lexer = new Lexer(allToken);
-    lexer.SkipGroups = [WhiteSpace];
-  const tokens = lexer.tokenize(input);
-
-    const result = parser.parse(tokens);
-    expect(result).toMatchSnapshot()
-  });
-});
-
-describe("CST Visitor", () => {
-  it("should visit and modify CST nodes successfully", () => {
-    const Main = createRule("Main", (r) => {
-      r.consume(Let);
-      r.consume(Identifier);
-    });
-
-    const parserTable = new ParserTable(Main);
-    const parser = new Parser(parserTable.getTable());
-
-    const input = "let testVar";
-  const lexer = new Lexer(allToken);
-    lexer.SkipGroups = [WhiteSpace];
-  const tokens = lexer.tokenize(input);
-
-    const cst = parser.parse(tokens);
-
+    const cst = parser.parse(lexResult);
     const visitor = new CSTVisitor(cst);
-    visitor.visitRegister("Main", (node: any) => {
-      return node.children
-    });
+    expect(() => visitor.visit()).toThrowError("No visitRegister found for node type: LetStatement");
+  })
 
-    const modifiedCST = visitor.visit();
-    expect(modifiedCST).toMatchInlineSnapshot(`
-      {
-        "StateStack": [
-          0,
-          1,
-        ],
-        "cst": [
-          {
-            "CstType": "TokenNode",
-            "EndColumn": 3,
-            "EndOffset": 2,
-            "StartColumn": 1,
-            "StartOffset": 0,
-            "image": "let",
-            "line": 1,
-            "tokenIdx": 0,
-            "type": "Let",
-          },
-          {
-            "CstType": "TokenNode",
-            "EndColumn": 11,
-            "EndOffset": 10,
-            "StartColumn": 5,
-            "StartOffset": 4,
-            "image": "testVar",
-            "line": 1,
-            "tokenIdx": 1,
-            "type": "Identifier",
-          },
-        ],
-        "errors": [],
-      }
-    `);
-  });
-
-  it("should throw error when visiting not have visitRegister", () => {
-    const Main = createRule("Main", (r) => {
-      r.consume(Let);
-      r.consume(Identifier);
-      r.subRule(() => subrule);
-    });
-
-    const subrule = createRule("subrule", (r) => {
-      r.consume(Typenumber);
-    });
-
-    const parserTable = new ParserTable(Main);
+  it("visit LetStatement", () => {
+    const lexResult = lexer.tokenize(inputsucceed);
+    const parserTable = new ParserTable(Program);
     const parser = new Parser(parserTable.getTable());
-
-    const input = "let testVar number";
-  const lexer = new Lexer(allToken);
-    lexer.SkipGroups = [WhiteSpace];
-  const tokens = lexer.tokenize(input);
-    const cst = parser.parse(tokens);
-
+    const cst = parser.parse(lexResult);
     const visitor = new CSTVisitor(cst);
 
-    expect(() => visitor.visit()).toThrowError(
-      `No visitRegister found for node type: subrule`
-    );
-  });
-});
+    visitor.visitRegister("Program", (node) => {
+      return node
+    })
+
+    visitor.visitRegister("LetStatement", (node) => {
+      return node
+    })
+
+    expect(visitor.visit()).toMatchSnapshot();
+  })
+})
