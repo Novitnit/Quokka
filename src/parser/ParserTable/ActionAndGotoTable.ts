@@ -1,6 +1,6 @@
-import { State } from ".";
-import { getTokenMap } from "../../lexer";
-import { Production } from "./types";
+import { State } from "./index.js";
+import { getTokenMap } from "../../lexer/index.js";
+import { Production } from "./types.js";
 
 export interface Table {
     ActionTable: Record<number, Record<number, Action>>;

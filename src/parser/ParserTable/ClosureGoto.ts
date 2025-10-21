@@ -1,5 +1,5 @@
-import { Item } from "./Item";
-import { Production } from "./types";
+import { Item } from "./Item.js";
+import { Production } from "./types.js";
 
 export function goto(
     stateItems: Item[],

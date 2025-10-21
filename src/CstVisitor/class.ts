@@ -1,4 +1,4 @@
-import { CST, CSTNode, CSTTokenNode, parserError } from "../parser";
+import { CST, CSTNode, CSTTokenNode, parserError } from "../parser/index.js";
 
 export interface VisitorResult {
     cst: CSTNode | CSTTokenNode;

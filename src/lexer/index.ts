@@ -1,2 +1,2 @@
-export * from "./token";
-export * from "./lexerClass";
+export * from "./token.js";
+export * from "./lexerClass.js";

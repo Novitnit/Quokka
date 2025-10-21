@@ -1,1 +1,1 @@
-export {LspHelp} from "./Lsp"
+export {LspHelp} from "./Lsp.js"

@@ -1,4 +1,4 @@
-import { Production } from "./types";
+import { Production } from "./types.js";
 
 export type Item = {
     productionIdx: number;

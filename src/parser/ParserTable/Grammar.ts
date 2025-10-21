@@ -1,5 +1,5 @@
-import { Rule } from "../Rule";
-import { buildProductions } from "./buildProductions";
+import { Rule } from "../Rule.js";
+import { buildProductions } from "./buildProductions.js";
 
 export type Production = {
     head: string;

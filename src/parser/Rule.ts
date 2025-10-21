@@ -1,4 +1,4 @@
-import { QGroup, QTokennType } from "../lexer";
+import { QGroup, QTokennType } from "../lexer/index.js";
 
 export type Impl = ConsumeRule | SubRule | OptionRule | ManyRule | OrRule;
 

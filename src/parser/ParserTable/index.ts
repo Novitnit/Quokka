@@ -1,9 +1,9 @@
-import { Rule } from "../Rule";
-import { Production } from "./types";
-import { Item, createItemsFromProductions, itemsKey } from "./Item";
-import { closure, goto } from "./ClosureGoto";
-import { buildProductions } from "./buildProductions";
-import { ActionAndGotoTable } from "./ActionAndGotoTable";
+import { Rule } from "../Rule.js";
+import { Production } from "./types.js";
+import { Item, createItemsFromProductions, itemsKey } from "./Item.js";
+import { closure, goto } from "./ClosureGoto.js";
+import { buildProductions } from "./buildProductions.js";
+import { ActionAndGotoTable } from "./ActionAndGotoTable.js";
 
 export type State = {
     items: Item[]

@@ -8,6 +8,7 @@
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
+  "moduleResolution": "nodenext",
     "target": "esnext",
     // "types": [],
     // For nodejs:
@@ -19,6 +20,11 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
+
+    "paths": {
+      "quokka": ["./dist/index.js"],
+      "quokka/server": ["./dist/server/index.js"]
+    },
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,

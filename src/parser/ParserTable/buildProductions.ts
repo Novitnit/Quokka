@@ -1,5 +1,5 @@
-import { Production } from "./types";
-import { Impl, Rule } from "../Rule";
+import { Production } from "./types.js";
+import { Impl, Rule } from "../Rule.js";
 
 let manyCount = 0;
 

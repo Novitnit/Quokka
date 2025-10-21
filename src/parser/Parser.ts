@@ -1,6 +1,6 @@
-import { LexingResult, QToken } from '../lexer';
-import { type Table } from './ParserTable/ActionAndGotoTable';
-import { Production } from './ParserTable/types';
+import { LexingResult, QToken } from "../lexer/index.js";
+import { type Table } from "./ParserTable/ActionAndGotoTable.js";
+import { Production } from "./ParserTable/types.js";
 
 export interface CSTNode {
     CstType: "Node";

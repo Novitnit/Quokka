@@ -1,4 +1,4 @@
-import { createGroup, findGroupOfToken, QGroup, QTokennType } from "./token";
+import { createGroup, findGroupOfToken, QGroup, QTokennType } from "./token.js";
 
 export interface QToken {
     startColumn: number;
