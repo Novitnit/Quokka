@@ -11,8 +11,8 @@ export interface CSTNode {
 export interface CST {
     cst: CSTNode | CSTTokenNode | null;
     errors: parserError[];
-    StateStack:number[];
-    ErrorStateStack:number[];
+    StateStack: number[];
+    ErrorStateStack: number[];
 }
 export interface CSTTokenNode {
     CstType: "TokenNode";
@@ -34,6 +34,12 @@ export interface parserError {
     ExpectedTokens: string | string[] | null
 }
 
+export interface SuggestResult {
+    state: number;
+    expected: string[];
+    index: number;
+}
+
 export class Parser {
     public Table: Table;
     private StateStack: number[] = [0]
@@ -48,6 +54,17 @@ export class Parser {
     }
 
     public parse(input: LexingResult): CST {
+        return this.internalParse(input, { suggest: false }) as CST;
+    }
+
+    public suggestParse(input: LexingResult): SuggestResult {
+        if (input.tokens.length > 0 && (input.tokens[input.tokens.length - 1] as QToken).tokenType.tokenIndex === -1) {
+            input.tokens = input.tokens.slice(0, -1);
+        }
+        return this.internalParse(input, { suggest: true }) as SuggestResult;
+    }
+
+    private internalParse(input: LexingResult, options: { suggest: boolean }): CST | SuggestResult {
         this.StateStack = [0];
         this.index = 0;
         this.cstNode = [];
@@ -57,12 +74,32 @@ export class Parser {
         while (true) {
             const state = this.StateStack[this.StateStack.length - 1] as number;
             const token = this.tokens[this.index];
-            console.log("state",state)
-            if (!token) throw `${this.index} out of bounds ${this.tokens.length - 1}`
+
+
+            if (!token) {
+                if (options.suggest) {
+                    return {
+                        state,
+                        expected: this.getExpectedToken(state, this.Table) ?? [],
+                        index: this.index
+                    }
+                } else {
+                    throw `${this.index} out of bounds ${this.tokens.length - 1}`
+                }
+            }
+
+
             const action = this.Table.ActionTable[state]?.[token.tokenType.tokenIndex];
 
             if (!action) {
                 const expectedTokens = this.getExpectedToken(state, this.Table);
+                if (options.suggest) {
+                    return {
+                        state,
+                        index: this.index,
+                        expected: expectedTokens ?? []
+                    };
+                }
                 this.errorStateStack = [...this.StateStack];
                 this.parserErrors.push({
                     found: `${token.image}`,
@@ -160,16 +197,16 @@ export class Parser {
             return {
                 cst: null,
                 errors: this.parserErrors,
-                StateStack:this.StateStack,
-                ErrorStateStack:this.errorStateStack
+                StateStack: this.StateStack,
+                ErrorStateStack: this.errorStateStack
             };
         }
         const flattenedRoot = this.flattenMany(root);
         return {
             cst: flattenedRoot,
             errors: this.parserErrors,
-            StateStack:this.StateStack,
-            ErrorStateStack:this.errorStateStack
+            StateStack: this.StateStack,
+            ErrorStateStack: this.errorStateStack
         }
     }
 
@@ -214,7 +251,7 @@ export class Parser {
     }
 
 
-    private getExpectedToken(state: number, table: Table): string | string[] | null {
+    private getExpectedToken(state: number, table: Table): string[] | null {
         const actionRow = table.ActionTable[state];
         if (!actionRow) return null;
         const expectedTokens: string[] = [];

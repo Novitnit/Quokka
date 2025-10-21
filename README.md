@@ -22,3 +22,4 @@
 - [X] CST Visitor
 - [ ] helper for create LSP 
     -[ ] Auto Complete
+        -[X] suggestParse
