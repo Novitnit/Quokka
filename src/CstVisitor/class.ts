@@ -12,11 +12,28 @@ export class CSTVisitor {
     private cstOld: CSTNode | CSTTokenNode | null;
     private cstErrors: parserError[] = [];
     private StateStack: number[] = [];
+    private OptionCallBack = (node:any) => {return node.children}
 
     constructor(cst: CST) {
         this.cst = cst;
         this.cstOld = structuredClone(cst.cst);
         this.StateStack = cst.StateStack;
+    }
+
+    private replaceChild(parent: CSTNode | undefined, idx: number, result: any) {
+        if (!parent) return;
+        if (Array.isArray(result)) {
+            parent.children.splice(idx, 1, ...result.flat());
+        } else if (result && typeof result === "object" && "type" in result) {
+            const node = result as CSTNode;
+            if (/^OPTION_\d+$/.test(node.type)) {
+                parent.children.splice(idx, 1, ...node.children);
+            } else {
+                parent.children[idx] = result;
+            }
+        } else {
+            parent.children[idx] = result;
+        }
     }
 
     public visit(): VisitorResult {
@@ -54,18 +71,22 @@ export class CSTVisitor {
                     }
                 } else {
                     const callback = this.callbacks[node.type];
+                    let result;
                     if (callback) {
-                        const result = callback(node);
+                        result = callback(node);
                         if (result !== undefined) {
                             const parent = parentMap.get(node);
-                            if (parent) {
-                                const idx = childIndexMap.get(node)!;
-                                parent.children[idx] = result;
-                            } else {
-                                return result;
-                            }
+                            const idx = childIndexMap.get(node)!;
+                            this.replaceChild(parent, idx, result);
                         }
                     }else{
+                        if(/^OPTION_\d+$/.test(node.type)){
+                            result = this.OptionCallBack(node);
+                            const parent = parentMap.get(node);
+                            const idx = childIndexMap.get(node)!;
+                            this.replaceChild(parent, idx, result);
+                            continue;
+                        }
                         throw new Error(`No visitRegister found for node type: ${node.type}`);
                     }
                 }

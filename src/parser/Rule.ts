@@ -1,6 +1,6 @@
 import { QGroup, QTokennType } from "../lexer/index.js";
 
-export type Impl = ConsumeRule | SubRule | OptionRule | ManyRule | OrRule;
+export type Impl = ConsumeRule | SubRule | OptionRule | ManyRule | OrRule | SequenceRule;
 
 export interface Rule {
     name: string;
@@ -30,6 +30,11 @@ export interface ManyRule {
 export interface OrRule {
     implType: "or";
     alternatives: Impl[];
+}
+
+export interface SequenceRule {
+    implType: "sequence";
+    elements: Impl[];
 }
 
 export interface CreateRuleContext {
@@ -145,7 +150,7 @@ function createChildContext(body: Impl[]): CreateRuleContext {
 function wrapBodyAsImpl(body: Impl[]): Impl {
     if (body[0] !== undefined && body.length === 1) return body[0];
     return {
-        implType: "subrule",
-        getRule: () => ({ name: "<inline>", body })
+        implType: "sequence",
+        elements: body
     };
 }

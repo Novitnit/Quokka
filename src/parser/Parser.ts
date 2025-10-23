@@ -12,7 +12,6 @@ export interface CST {
     cst: CSTNode | CSTTokenNode | null;
     errors: parserError[];
     StateStack: number[];
-    ErrorStateStack: number[];
 }
 export interface CSTTokenNode {
     CstType: "TokenNode";
@@ -43,7 +42,6 @@ export interface SuggestResult {
 export class Parser {
     public Table: Table;
     private StateStack: number[] = [0]
-    private errorStateStack: number[] = [];
     private index = 0
     public parserErrors: parserError[] = []
     private tokens: QToken[] = []
@@ -100,7 +98,6 @@ export class Parser {
                         expected: expectedTokens ?? []
                     };
                 }
-                this.errorStateStack = [...this.StateStack];
                 this.parserErrors.push({
                     found: `${token.image}`,
                     line: token.line,
@@ -118,15 +115,6 @@ export class Parser {
                     }
                     this.index++;
                     if (this.index >= this.tokens.length) {
-                        this.parserErrors.push({
-                            found: `Rule Error`,
-                            line: -1,
-                            startColumn: -1,
-                            endColumn: -1,
-                            ExpectedTokens:
-                                `No more tokens to parse. This may happen if the order of allTokens is incorrect. ` +
-                                `Try placing Identifier at the end of allTokens to avoid it matching keywords first.`,
-                        });
                         return this.getReturnParser();
                     }
                 }
@@ -198,7 +186,6 @@ export class Parser {
                 cst: null,
                 errors: this.parserErrors,
                 StateStack: this.StateStack,
-                ErrorStateStack: this.errorStateStack
             };
         }
         const flattenedRoot = this.flattenMany(root);
@@ -206,7 +193,6 @@ export class Parser {
             cst: flattenedRoot,
             errors: this.parserErrors,
             StateStack: this.StateStack,
-            ErrorStateStack: this.errorStateStack
         }
     }
 

@@ -9,24 +9,24 @@
     "test": "vitest",
     "ui": "vitest --ui"
   },
-  "exports":{
-    ".":{
+  "exports": {
+    ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./lexer":{
+    "./lexer": {
       "import": "./dist/lexer/index.js",
       "types": "./dist/lexer/index.d.ts"
     },
-    "./parser":{
+    "./parser": {
       "import": "./dist/parser/index.js",
       "types": "./dist/parser/index.d.ts"
     },
-    "./cstVisitor":{
+    "./cstVisitor": {
       "import": "./dist/CstVisitor/index.js",
       "types": "./dist/CstVisitor/index.d.ts"
     },
-    "./LspHelp":{
+    "./LspHelp": {
       "import": "./dist/LspHelp/index.js",
       "types": "./dist/LspHelp/index.d.ts"
     }
@@ -45,6 +45,8 @@
   "dependencies": {
     "js-yaml": "^4.1.0",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
   }
 }
