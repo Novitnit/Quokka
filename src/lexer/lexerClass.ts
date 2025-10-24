@@ -54,7 +54,7 @@ export class Lexer {
             for (const tokenType of this.AllToken) {
                 const regexp = typeof tokenType.pattern === 'string' ? new RegExp('^' + tokenType.pattern) : new RegExp('^' + tokenType.pattern.source);
                 const match = substring.match(regexp);
-                if (match) {
+                if (match && match[0].length > 0) {
                     const image = match[0];
                     const startOffset = pos;
                     const endOffset = pos + image.length - 1;
@@ -88,7 +88,7 @@ export class Lexer {
                     Offset: pos
                 });
                 pos++;
-                break;
+                continue;
             }
         }
 

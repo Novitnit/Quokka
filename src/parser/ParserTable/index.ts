@@ -16,7 +16,7 @@ export class ParserTable {
     private nonterminalMap: Record<string, number> = {};
     private reverseNonterminalMap: Record<number, string> = {};
     private States: State[] = [];
-    private actionGotoTable: ActionAndGotoTable;
+    public actionGotoTable: ActionAndGotoTable;
 
     constructor(rule: Rule) {
         this.buildProductions(rule);

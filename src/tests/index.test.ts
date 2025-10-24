@@ -166,8 +166,8 @@ describe("CSTVisitor", () => {
     const parserTable = new ParserTable(Program);
     const parser = new Parser(parserTable.getTable());
     const cst = parser.parse(lexResult);
-    const visitor = new CSTVisitor(cst);
-    expect(() => visitor.visit()).toThrowError("No visitRegister found for node type: LetStatement");
+    const visitor = new CSTVisitor();
+    expect(() => visitor.visit(cst)).toThrowError("No visitRegister found for node type: LetStatement");
   })
 
   it("visit LetStatement", () => {
@@ -175,7 +175,7 @@ describe("CSTVisitor", () => {
     const parserTable = new ParserTable(Program);
     const parser = new Parser(parserTable.getTable());
     const cst = parser.parse(lexResult);
-    const visitor = new CSTVisitor(cst);
+    const visitor = new CSTVisitor();
 
     visitor.visitRegister("Program", (node) => {
       return node
@@ -185,6 +185,6 @@ describe("CSTVisitor", () => {
       return node
     })
 
-    expect(visitor.visit()).toMatchSnapshot();
+    expect(visitor.visit(cst)).toMatchSnapshot();
   })
 })

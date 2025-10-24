@@ -64,6 +64,12 @@ export class buildProductions {
                 }
                 break;
             }
+            case "sequence": {
+                for (const el of impl.elements) {
+                    this.scanNestedForRules(el);
+                }
+                break;
+            }
             case "consume":
                 break;
         }
@@ -75,10 +81,20 @@ export class buildProductions {
                 return acc.map(a => [...a, impl.token.tokenIndex])
             }
             case "option": {
-                const without = acc.map(a => [...a]);
+                const optionName = `OPTION_${manyCount++}`;
+                const optionIdx = this.getNonterminalIndex(optionName);
                 const childBodies = this.expandImpl(impl.child, [[]]);
-                const withChild = acc.flatMap(a => childBodies.map(c => [...a, ...c]));
-                return [...without, ...withChild];
+                this.Productions.push({
+                    head: optionName,
+                    body: []
+                });
+                for (const c of childBodies) {
+                    this.Productions.push({
+                        head: optionName,
+                        body: c
+                    });
+                }
+                return acc.map(a => [...a, optionIdx]);
             }
             case "subrule": {
                 const subRule = impl.getRule();
@@ -108,6 +124,13 @@ export class buildProductions {
                     results = [...results, ...acc.flatMap(a => expandedAlt.map(c => [...a, ...c]))];
                 }
                 return results;
+            }
+            case "sequence":{
+                let result: number[][] = acc;   
+                for(const el of impl.elements){
+                    result = this.expandImpl(el, result)
+                }
+                return result;
             }
         }
         return [[]]
