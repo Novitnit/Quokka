@@ -14,10 +14,10 @@ export class CSTVisitor {
     private StateStack: number[] = [];
     private OptionCallBack = (node:any) => {return node.children}
 
-    constructor(cst: CST) {
-        this.cst = cst;
-        this.cstOld = structuredClone(cst.cst);
-        this.StateStack = cst.StateStack;
+    constructor() {
+        this.cst = { cst: null, errors: [], StateStack: [] };
+        this.cstOld = null;
+        this.StateStack = [];
     }
 
     private replaceChild(parent: CSTNode | undefined, idx: number, result: any) {
@@ -36,7 +36,10 @@ export class CSTVisitor {
         }
     }
 
-    public visit(): VisitorResult {
+    public visit(cst: CST): VisitorResult {
+        this.cst = cst;
+        this.cstOld = structuredClone(cst.cst);
+        this.StateStack = cst.StateStack;
         if (!this.cst.cst) throw new Error("CST is empty");
         if (this.cst.errors.length > 0) this.cstErrors = this.cst.errors;
         return {

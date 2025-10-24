@@ -52,7 +52,6 @@ export class Lexer {
             let matched = false;
             const substring = input.slice(pos);
             for (const tokenType of this.AllToken) {
-                console.log(tokenType)
                 const regexp = typeof tokenType.pattern === 'string' ? new RegExp('^' + tokenType.pattern) : new RegExp('^' + tokenType.pattern.source);
                 const match = substring.match(regexp);
                 if (match && match[0].length > 0) {
