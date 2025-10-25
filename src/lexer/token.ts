@@ -75,6 +75,10 @@ export function createGroup(config: GroupConfig): QGroup {
     return newGroup;
 }
 
-export function findGroupOfToken(token: QTokennType): number {
+export function findGroupOfTokenWhitnumber(token: QTokennType): number {
   return tokenToGroupMap.get(token.tokenIndex)?.groupIndex ?? 0;
+}
+
+export function findGroupOfToken(token: QTokennType): string | undefined {
+  return tokenToGroupMap.get(token.tokenIndex)?.name;
 }

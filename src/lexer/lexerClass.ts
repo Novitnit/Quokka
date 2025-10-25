@@ -1,4 +1,4 @@
-import { createGroup, findGroupOfToken, QGroup, QTokennType } from "./token.js";
+import { createGroup, findGroupOfTokenWhitnumber, QGroup, QTokennType } from "./token.js";
 
 export interface QToken {
     startColumn: number;
@@ -12,11 +12,11 @@ export interface QToken {
 
 export interface LexingResult {
     tokens: QToken[];
-    errors: Error[];
+    errors: LexerError[];
     Groups: QGroup[];
 }
 
-export interface Error {
+export interface LexerError {
     message: string;
     line: number;
     column: number;
@@ -29,7 +29,7 @@ export class Lexer {
     private lineBreaks: number[] = [];
 
     private SkipGroup: QGroup = createGroup({ name: "SkipGroup", tokens: this.SkipGroups , groupIndex: -1});
-    private errors: Error[] = []
+    private errors: LexerError[] = []
 
     constructor(private AllToken: QTokennType[], private AllGroup?: QGroup[]) {
         this.lineBreaks = [];
@@ -58,7 +58,7 @@ export class Lexer {
                     const image = match[0];
                     const startOffset = pos;
                     const endOffset = pos + image.length - 1;
-                    if (findGroupOfToken(tokenType) !== -1) {
+                    if (findGroupOfTokenWhitnumber(tokenType) !== -1) {
                         const { line: startLine, column: startColumn } = this.getLineColumn(startOffset);
                         const { line: endLine, column: endColumn } = this.getLineColumn(endOffset);
                         
