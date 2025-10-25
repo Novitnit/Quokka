@@ -1,4 +1,5 @@
 import { LexingResult, QToken } from "../lexer/index.js";
+import { getGroupNameByTokenIndex } from "../lexer/token.js";
 import { type Table } from "./ParserTable/ActionAndGotoTable.js";
 import { Production } from "./ParserTable/types.js";
 
@@ -18,10 +19,10 @@ export interface CSTTokenNode {
     type: string;
     image: string;
     tokenIdx: number;
-    StartColumn: number;
-    EndColumn: number;
-    StartOffset: number;
-    EndOffset: number;
+    startColumn: number;
+    endColumn: number;
+    startOffset: number;
+    endOffset: number;
     line: number;
 }
 
@@ -30,12 +31,14 @@ export interface parserError {
     line: number
     startColumn: number
     endColumn: number
-    ExpectedTokens: string | string[] | null
+    Expected: string[];
+    ExpectedAllTokens: string[];
 }
 
 export interface SuggestResult {
     state: number;
     expected: string[];
+    expectedAllTokens: string[];
     index: number;
 }
 
@@ -76,9 +79,11 @@ export class Parser {
 
             if (!token) {
                 if (options.suggest) {
+                    const sep = this.getExpectedTokenSeparated(state, this.Table);
                     return {
                         state,
                         expected: this.getExpectedToken(state, this.Table) ?? [],
+                        expectedAllTokens: sep?.tokens ?? [],
                         index: this.index
                     }
                 } else {
@@ -91,11 +96,13 @@ export class Parser {
 
             if (!action) {
                 const expectedTokens = this.getExpectedToken(state, this.Table);
+                const sep = this.getExpectedTokenSeparated(state, this.Table);
                 if (options.suggest) {
                     return {
                         state,
                         index: this.index,
-                        expected: expectedTokens ?? []
+                        expected: expectedTokens ?? [],
+                        expectedAllTokens: sep?.tokens ?? []
                     };
                 }
                 this.parserErrors.push({
@@ -103,7 +110,8 @@ export class Parser {
                     line: token.line,
                     startColumn: token.startColumn,
                     endColumn: token.endColumn,
-                    ExpectedTokens: expectedTokens
+                    Expected: expectedTokens ?? [],
+                    ExpectedAllTokens: sep?.tokens ?? []
                 })
                 while (this.index < this.tokens.length) {
                     const lookaheads = this.tokens[this.index] as QToken;
@@ -126,10 +134,10 @@ export class Parser {
                         CstType: "TokenNode",
                         type: token.tokenType.name,
                         image: token.image,
-                        StartColumn: token.startColumn,
-                        EndColumn: token.endColumn,
-                        StartOffset: token.startOffset,
-                        EndOffset: token.endOffset,
+                        startColumn: token.startColumn,
+                        endColumn: token.endColumn,
+                        startOffset: token.startOffset,
+                        endOffset: token.endOffset,
                         line: token.line,
                         tokenIdx: token.tokenType.tokenIndex
                     }
@@ -240,16 +248,43 @@ export class Parser {
     private getExpectedToken(state: number, table: Table): string[] | null {
         const actionRow = table.ActionTable[state];
         if (!actionRow) return null;
-        const expectedTokens: string[] = [];
-        for (const [tokenIndex, action] of Object.entries(actionRow)) {
-            if (action.type !== 'error') {
-                const tokenName = table.TokenMap[Number(tokenIndex)];
-                if (tokenName) {
-                    expectedTokens.push(tokenName);
-                }
+        const groups = new Set<string>();
+        const tokensNotInGroup = new Set<string>();
+        for (const [tokenIndexStr, action] of Object.entries(actionRow)) {
+            if (action.type === 'error') continue;
+            const idx = Number(tokenIndexStr);
+            const groupName = getGroupNameByTokenIndex(idx);
+            if (groupName) {
+                groups.add(groupName);
+            } else {
+                const tokenName = table.TokenMap[idx];
+                if (tokenName) tokensNotInGroup.add(tokenName);
             }
         }
-        return expectedTokens.length > 0 ? expectedTokens : null;
+        const finalList = [...groups, ...tokensNotInGroup];
+        return finalList.length ? finalList : null;
+    }
+
+    private getExpectedTokenSeparated(state: number, table: Table): { groups: string[]; tokens: string[]; tokensNotInGroup: string[] } | null {
+        const actionRow = table.ActionTable[state];
+        if (!actionRow) return null;
+        const groupNames = new Set<string>();
+        const tokenNames = new Set<string>();
+        const tokenNamesNoGroup = new Set<string>();
+        for (const [tokenIndexStr, action] of Object.entries(actionRow)) {
+            if (action.type === 'error') continue;
+            const idx = Number(tokenIndexStr);
+            const groupName = getGroupNameByTokenIndex(idx);
+            const tokenName = table.TokenMap[idx];
+            if (groupName) {
+                groupNames.add(groupName);
+            } else if (tokenName) {
+                tokenNamesNoGroup.add(tokenName);
+            }
+            if (tokenName) tokenNames.add(tokenName);
+        }
+        if (groupNames.size === 0 && tokenNames.size === 0) return null;
+        return { groups: Array.from(groupNames), tokens: Array.from(tokenNames), tokensNotInGroup: Array.from(tokenNamesNoGroup) };
     }
 
 }

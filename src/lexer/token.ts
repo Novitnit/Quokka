@@ -12,7 +12,7 @@ export interface QTokennType {
     tokenIndex: number;
 }
 
-const TokenMap:Record<number,string> = {}
+const TokenMap: Record<number, string> = {}
 
 export function createToken(config: TokenConfig): QTokennType {
     const name = config.name;
@@ -26,7 +26,7 @@ export function createToken(config: TokenConfig): QTokennType {
     return token;
 }
 
-export function getTokenMap(){
+export function getTokenMap() {
     return TokenMap
 }
 
@@ -76,9 +76,21 @@ export function createGroup(config: GroupConfig): QGroup {
 }
 
 export function findGroupOfTokenWhitnumber(token: QTokennType): number {
-  return tokenToGroupMap.get(token.tokenIndex)?.groupIndex ?? 0;
+    return tokenToGroupMap.get(token.tokenIndex)?.groupIndex ?? 0;
 }
 
-export function findGroupOfToken(token: QTokennType): string | undefined {
-  return tokenToGroupMap.get(token.tokenIndex)?.name;
+export function findGroupOfToken(tokenindex: number): string | undefined {
+    return tokenToGroupMap.get(tokenindex)?.name;
+}
+
+export function getGroupNameByTokenIndex(tokenIndex: number): string | undefined {
+    return tokenToGroupMap.get(tokenIndex)?.name;
+}
+
+export function getTokenIndexToGroupNameMap(): Record<number, string> {
+    const out: Record<number, string> = {};
+    for (const [idx, group] of tokenToGroupMap.entries()) {
+        out[idx] = group.name;
+    }
+    return out;
 }

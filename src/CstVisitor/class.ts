@@ -37,6 +37,7 @@ export class CSTVisitor {
     }
 
     public visit(cst: CST): VisitorResult {
+        this.cstErrors = []
         this.cst = cst;
         this.cstOld = structuredClone(cst.cst);
         this.StateStack = cst.StateStack;
@@ -49,6 +50,10 @@ export class CSTVisitor {
         };
     }
 
+    public visitError(error: parserError): void {
+        this.cstErrors.push(error);
+    }
+    
     public visitRegister(name: string, callbacks: (...args: any[]) => void): void {
         this.callbacks[name] = callbacks;
     }
